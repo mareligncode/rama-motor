@@ -13,6 +13,14 @@ app.get("/",(req,res)=>{
     res.json(
         {
             message:"rama mototr is live...",
+            endpoinst:{
+                get:"/get",
+                post:"/post",
+                put:"/put",
+                delete:"/delete",
+                patch:"/patch"
+
+            }
         }
     )
 })
