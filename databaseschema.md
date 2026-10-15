@@ -10,7 +10,7 @@ Common account information. Do not store role-specific driver details here.
     - `image`: object, optional
         - `front`: string, optional
         - `back`: string, optional
-- `fanNumberVerifiedAt`: date, optional
+- `nationalIdVerifiedAt`: date, optional
 - `phoneCountryCode`: string — default `+251`
 - `phoneNumber`: string
 - `normalizedPhone`: string — unique normalized phone
