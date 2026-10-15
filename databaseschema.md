@@ -4,12 +4,12 @@ Common account information. Do not store role-specific driver details here.
 
 - `_id`: ObjectId
 - `fullName`: string
-- `nationalIDdetial`:{
-- fannumer
-- fin number
-- image{
-front
-- back}
+- `nationalIdDetail`: object, optional
+    - `fanNumber`: string, optional
+    - `finNumber`: string, optional
+    - `image`: object, optional
+        - `front`: string, optional
+        - `back`: string, optional
 - `fanNumberVerifiedAt`: date, optional
 - `phoneCountryCode`: string — default `+251`
 - `phoneNumber`: string
