@@ -13,17 +13,18 @@
 # Phase - 4
 - drivers
 - driver_documents
+# Phase - 5
 - vehicles
 - vehicle_documents
 - vehicle_rental_agreements
 - vehicle_assignments
-# Phase - 5
+# Phase - 6
 - fare_rules
 - fare_quotes
 - service_zones
 - promotions
 - promotion_redemptions
-# Phase - 6
+# Phase - 7
 - wallets
 - transactions
 - driver_deposits
@@ -31,7 +32,7 @@
 - cod_payments
 - refunds
 - driver_settlements
-# Phase - 7
+# Phase - 8
 - saved_addresses
 - delivery_orders
 - delivery_items
@@ -41,6 +42,6 @@
 - delivery_status_history
 - delivery_tracking
 - delivery_proofs
-# Phase - 8
+# Phase - 9
 - reviews
 - incidents
