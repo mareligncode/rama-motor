@@ -15,6 +15,7 @@ export const ti: TranslationKeys = {
     retry: 'ደጊምካ ፈትን',
     all: 'ኩሉ',
     search: 'ድለይ',
+    accept: 'ተቐበል እሞ ዕጸው',
   },
   auth: {
     loginTitle: 'ነገራት ብ Rama Delivery ስደዱ ወይ ተቐበሉ',
@@ -65,6 +66,12 @@ export const ti: TranslationKeys = {
     driverSafetyProtocol: 'ናይ ድሕንነት መከላኸሊን ፕሮቶኮል ኣጋርን Rama Delivery',
     editPhone: 'ኣዐሪ',
     readyToResend: 'ኮድ ደጊምካ ንምልኣኽ ድሉው እዩ',
+    agreePrefix: 'ናይ Rama Delivery ',
+    termsOfService: 'ውዕል ኣገልግሎት',
+    andText: ' ከምኡ ውን ',
+    privacyPolicy: 'ፖሊሲ ብሕትውና',
+    termsRequiredError: 'ብኽብረትኩም ቅድሚ ምቕጻልኩም ውዕል ኣገልግሎት ተቐበሉ።',
+    sampleTermsLink: 'ናይ ውዕል ኣብነት ብኦንላይን ርኣዩ',
   },
   delivery: {
     homeBadge: 'ናይ RAMA ምብጻሕ መልእኽተኛ',

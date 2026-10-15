@@ -1,3 +1,4 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { API_BASE_URL, API_TIMEOUT_MS } from '../constants/api';
 import { STORAGE_KEYS } from '../constants/storage';
 import { storage } from '../utils/storage';
@@ -15,112 +16,113 @@ export class ApiError extends Error {
   }
 }
 
-interface RequestOptions extends RequestInit {
+export interface RequestOptions extends AxiosRequestConfig {
   timeoutMs?: number;
-  params?: Record<string, string | number | boolean | undefined>;
 }
 
 export class ApiClient {
+  public axiosInstance: AxiosInstance;
   private baseUrl: string;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    this.axiosInstance = axios.create({
+      baseURL: this.baseUrl,
+      timeout: API_TIMEOUT_MS,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+
+    this.setupInterceptors();
   }
 
-  private async getAuthToken(): Promise<string | null> {
-    return await storage.getItem<string>(STORAGE_KEYS.AUTH_TOKEN);
+  private setupInterceptors(): void {
+    // Request Interceptor: Inject JWT Bearer Token from AsyncStorage
+    this.axiosInstance.interceptors.request.use(
+      async (config) => {
+        try {
+          const token = await storage.getItem<string>(STORAGE_KEYS.AUTH_TOKEN);
+          if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+        } catch (storageError) {
+          console.warn('ApiClient: Failed to retrieve auth token from storage', storageError);
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Response Interceptor: Format errors and handle network timeouts
+    this.axiosInstance.interceptors.response.use(
+      (response: AxiosResponse) => {
+        return response;
+      },
+      (error: AxiosError) => {
+        if (error.code === 'ECONNABORTED' || error.message?.toLowerCase().includes('timeout')) {
+          return Promise.reject(
+            new ApiError('Network request timed out. Please check your connection.', 408)
+          );
+        }
+
+        if (error.response) {
+          const responseData = error.response.data as any;
+          const status = error.response.status;
+          const errorMessage =
+            responseData?.message ||
+            (responseData?.error && typeof responseData.error === 'string'
+              ? responseData.error
+              : `Request failed with status ${status}`);
+
+          return Promise.reject(new ApiError(errorMessage, status, responseData));
+        }
+
+        // Network error (no response received from server)
+        return Promise.reject(
+          new ApiError(
+            error.message || 'Unable to connect to Rama Delivery server. Please check your connection.',
+            0,
+            error
+          )
+        );
+      }
+    );
   }
 
-  public setBaseUrl(url: string) {
+  public setBaseUrl(url: string): void {
     this.baseUrl = url;
+    this.axiosInstance.defaults.baseURL = url;
   }
 
   public getBaseUrl(): string {
     return this.baseUrl;
   }
 
-  private buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-    const fullPath = path.startsWith('/') ? path : `/${path}`;
-    let url = `${this.baseUrl}${fullPath}`;
-
-    if (params) {
-      const queryParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, val]) => {
-        if (val !== undefined && val !== null) {
-          queryParams.append(key, String(val));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
-    }
-
-    return url;
-  }
-
   async request<T = any>(path: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    const { timeoutMs = API_TIMEOUT_MS, params, headers: customHeaders, ...fetchOptions } = options;
-    const url = this.buildUrl(path, params);
-
-    const token = await this.getAuthToken();
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...(customHeaders as Record<string, string>),
+    const { timeoutMs, ...axiosConfig } = options;
+    const config: AxiosRequestConfig = {
+      ...axiosConfig,
+      url: path,
     };
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    if (timeoutMs) {
+      config.timeout = timeoutMs;
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
     try {
-      const response = await fetch(url, {
-        ...fetchOptions,
-        headers,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      let responseData: any;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json();
-      } else {
-        const text = await response.text();
-        responseData = { message: text };
-      }
-
-      if (!response.ok) {
-        const errorMessage =
-          responseData?.message ||
-          (responseData?.error && typeof responseData.error === 'string'
-            ? responseData.error
-            : `Request failed with status ${response.status}`);
-
-        throw new ApiError(errorMessage, response.status, responseData);
-      }
-
-      return responseData as ApiResponse<T>;
+      const response = await this.axiosInstance.request<ApiResponse<T>>(config);
+      return response.data;
     } catch (error: any) {
-      clearTimeout(timeoutId);
-
-      if (error.name === 'AbortError') {
-        throw new ApiError('Network request timed out. Please check your connection.', 408);
-      }
-
       if (error instanceof ApiError) {
         throw error;
       }
-
       throw new ApiError(
-        error.message || 'Unable to connect to Rama Delivery server. Please check your connection.',
-        0,
+        error.message || 'Unexpected network error occurred',
+        error.statusCode || 500,
         error
       );
     }
@@ -134,7 +136,7 @@ export class ApiClient {
     return this.request<T>(path, {
       ...options,
       method: 'POST',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      data: body,
     });
   }
 
@@ -142,7 +144,7 @@ export class ApiClient {
     return this.request<T>(path, {
       ...options,
       method: 'PUT',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      data: body,
     });
   }
 
@@ -150,7 +152,7 @@ export class ApiClient {
     return this.request<T>(path, {
       ...options,
       method: 'PATCH',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      data: body,
     });
   }
 

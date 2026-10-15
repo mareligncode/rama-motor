@@ -16,6 +16,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Button } from "../../components/common/Button";
+import { Checkbox } from "../../components/common/Checkbox";
+import { TermsModal } from "../../components/common/TermsModal";
 import { LanguageSelectorModal } from "../../components/common/LanguageSelectorModal";
 import { ThemeDropdown } from "../../components/common/ThemeDropdown";
 import { isValidEthiopianPhone, normalizeEthiopianPhone } from "../../utils/validators";
@@ -27,6 +29,8 @@ export default function CustomerLoginScreen() {
   const { translations, language, supportedLanguages } = useTranslation();
 
   const [phone, setPhone] = useState("911234567");
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,6 +43,11 @@ export default function CustomerLoginScreen() {
 
   const handleSendOtp = async () => {
     setError("");
+
+    if (!agreedToTerms) {
+      setError(translations.auth.termsRequiredError || "Please agree to Terms of Service to continue.");
+      return;
+    }
 
     if (!cleanPhone) {
       setError(translations.common.error + ": " + translations.auth.phoneLabel);
@@ -283,6 +292,56 @@ export default function CustomerLoginScreen() {
             </View>
           </View>
 
+          {/* Terms Agreement Checkbox & Sample Link */}
+          <View className="mb-4">
+            <Checkbox
+              checked={agreedToTerms}
+              onToggle={(val) => {
+                setAgreedToTerms(val);
+                if (val && error === translations.auth.termsRequiredError) {
+                  setError("");
+                }
+              }}
+              error={!agreedToTerms && !!error}
+            >
+              <View className="flex-row flex-wrap items-center">
+                <Text style={{ color: colors.textSecondary }} className="text-xs">
+                  {translations.auth.agreePrefix}{" "}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setTermsModalVisible(true)}
+                >
+                  <Text className="text-xs font-bold text-[#00684A] underline">
+                    {translations.auth.termsOfService}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={{ color: colors.textSecondary }} className="text-xs">
+                  {" "}{translations.auth.andText}{" "}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setTermsModalVisible(true)}
+                >
+                  <Text className="text-xs font-bold text-[#00684A] underline">
+                    {translations.auth.privacyPolicy}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Checkbox>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setTermsModalVisible(true)}
+              className="flex-row items-center ml-7 mt-0.5"
+            >
+              <Ionicons name="document-text-outline" size={13} color="#00684A" />
+              <Text className="text-[11px] font-bold text-[#00684A] ml-1">
+                {translations.auth.sampleTermsLink} ↗
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Action Button */}
           <Button
             title={translations.auth.getOtpBtn}
@@ -385,6 +444,19 @@ export default function CustomerLoginScreen() {
       <LanguageSelectorModal
         visible={langModalVisible}
         onClose={() => setLangModalVisible(false)}
+      />
+
+      {/* Terms of Service & Privacy Policy Modal */}
+      <TermsModal
+        visible={termsModalVisible}
+        onClose={() => setTermsModalVisible(false)}
+        onAccept={() => {
+          setAgreedToTerms(true);
+          setTermsModalVisible(false);
+          if (error === translations.auth.termsRequiredError) {
+            setError("");
+          }
+        }}
       />
     </SafeAreaView>
   );

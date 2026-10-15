@@ -15,6 +15,7 @@ export const en: TranslationKeys = {
     retry: 'Try Again',
     all: 'All',
     search: 'Search',
+    accept: 'Accept & Close',
   },
   auth: {
     loginTitle: 'Send or Receive Items with Rama Delivery',
@@ -65,6 +66,12 @@ export const en: TranslationKeys = {
     driverSafetyProtocol: 'Rama Delivery Safety Shield & Partner Protocol',
     editPhone: 'Edit',
     readyToResend: 'Ready to resend code',
+    agreePrefix: "I agree to Rama Delivery's ",
+    termsOfService: 'Terms of Service',
+    andText: ' and ',
+    privacyPolicy: 'Privacy Policy',
+    termsRequiredError: 'Please accept the Terms of Service to proceed.',
+    sampleTermsLink: 'View Sample Terms Online',
   },
   delivery: {
     homeBadge: 'RAMA DELIVERY COURIER',

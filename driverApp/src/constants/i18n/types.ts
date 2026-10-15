@@ -30,6 +30,7 @@ export type TranslationKeys = {
     retry: string;
     all: string;
     search: string;
+    accept: string;
   };
   // Auth
   auth: {
@@ -81,6 +82,12 @@ export type TranslationKeys = {
     driverSafetyProtocol: string;
     editPhone: string;
     readyToResend: string;
+    agreePrefix: string;
+    termsOfService: string;
+    andText: string;
+    privacyPolicy: string;
+    termsRequiredError: string;
+    sampleTermsLink: string;
   };
   // Home & Delivery (Customer)
   delivery: {

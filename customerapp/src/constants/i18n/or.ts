@@ -15,6 +15,7 @@ export const or: TranslationKeys = {
     retry: "Irra Deebi'ii Yaali",
     all: 'Hunda',
     search: 'Barbaadi',
+    accept: 'Fudhadhu & Cufi',
   },
   auth: {
     loginTitle: 'Meeshaalee Rama Delivery tiin Ergaa ykn Fudhadhaa',
@@ -65,6 +66,12 @@ export const or: TranslationKeys = {
     driverSafetyProtocol: 'Gaachana Eegumsaa fi Pirootookoolii Qooddataa Rama Delivery',
     editPhone: 'Sirreessi',
     readyToResend: 'Koodii lammata erguuf qophiidha',
+    agreePrefix: 'Waliigaltee Rama Delivery ',
+    termsOfService: 'Tajaajilaa',
+    andText: ' fi ',
+    privacyPolicy: 'Imaammata Dhuunfaa',
+    termsRequiredError: 'Mee itti fufuuf dura Waliigaltee Tajaajilaa fudhadhaa.',
+    sampleTermsLink: 'Fakkeenya Waliigaltee Toora Interneetiin Ilaalaa',
   },
   delivery: {
     homeBadge: 'ERGAWWAN MEESHAA RAMA',
