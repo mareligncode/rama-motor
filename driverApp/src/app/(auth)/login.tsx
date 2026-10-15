@@ -37,7 +37,7 @@ export default function DriverLoginScreen() {
 
   const cleanPhone = phone.replace(/\D/g, "");
   const isValid = isValidEthiopianPhone(phone);
-  const carrier = cleanPhone.startsWith("7") ? translations.auth.carrierSafari : translations.auth.carrierEthio;
+  const carrier = translations.auth.carrierEthio;
 
   const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
@@ -54,8 +54,13 @@ export default function DriverLoginScreen() {
       return;
     }
 
+    if (!cleanPhone.startsWith("9")) {
+      setError("Please enter a valid Ethio Telecom mobile number starting with 9 (e.g. 912345678)");
+      return;
+    }
+
     if (!isValid) {
-      setError("Please enter a valid 9-digit Ethiopian mobile number (9... / 7...)");
+      setError("Please enter a valid 9-digit Ethio Telecom mobile number (9...)");
       return;
     }
 
@@ -249,47 +254,11 @@ export default function DriverLoginScreen() {
             </View>
 
             {error ? (
-              <View className="flex-row items-center mt-1">
+              <View className="flex-row items-center mt-2">
                 <Ionicons name="alert-circle" size={14} color="#EF4444" />
                 <Text className="text-xs text-red-500 ml-1 font-medium">{error}</Text>
               </View>
             ) : null}
-
-            {/* Quick Prefixes Row */}
-            <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <Text style={{ color: colors.textMuted }} className="text-[11px] font-medium">
-                {translations.auth.quickNetwork}:
-              </Text>
-              <View className="flex-row space-x-1.5">
-                <TouchableOpacity
-                  onPress={() => setPhone("91" + phone.slice(2))}
-                  style={{ backgroundColor: colors.surfaceVariant }}
-                  className="px-2.5 py-1 rounded-md active:opacity-70 mr-1.5"
-                >
-                  <Text style={{ color: colors.textPrimary }} className="text-[11px] font-bold">
-                    91 Ethio
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setPhone("92" + phone.slice(2))}
-                  style={{ backgroundColor: colors.surfaceVariant }}
-                  className="px-2.5 py-1 rounded-md active:opacity-70 mr-1.5"
-                >
-                  <Text style={{ color: colors.textPrimary }} className="text-[11px] font-bold">
-                    92 Ethio
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setPhone("71" + phone.slice(2))}
-                  style={{ backgroundColor: colors.surfaceVariant }}
-                  className="px-2.5 py-1 rounded-md active:opacity-70"
-                >
-                  <Text style={{ color: colors.textPrimary }} className="text-[11px] font-bold">
-                    71 Safari
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
           </View>
 
           {/* Terms Agreement Checkbox & Sample Link */}
