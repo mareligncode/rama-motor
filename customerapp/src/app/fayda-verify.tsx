@@ -13,11 +13,15 @@ import { Header } from "../components/common/Header";
 import { Input } from "../components/common/Input";
 import { Button } from "../components/common/Button";
 import { useAuth } from "../hooks/useAuth";
+import { useTranslation } from "../hooks/useTranslation";
+import { useTheme } from "../hooks/useTheme";
 import { isValidFaydaFan, isValidFaydaFin } from "../utils/validators";
 
 export default function FaydaVerifyScreen() {
   const router = useRouter();
   const { user, verifyFayda } = useAuth();
+  const { translations } = useTranslation();
+  const { colors, isDark } = useTheme();
 
   const [fanNumber, setFanNumber] = useState(user?.nationalIdDetail?.fanNumber || "");
   const [finNumber, setFinNumber] = useState(user?.nationalIdDetail?.finNumber || "");
@@ -29,12 +33,12 @@ export default function FaydaVerifyScreen() {
     setError("");
 
     if (!fanNumber.trim() && !finNumber.trim()) {
-      setError("Please provide either your 16-digit FAN or FIN number");
+      setError(translations.fayda.fanLabel);
       return;
     }
 
     if (fanNumber.trim() && !isValidFaydaFan(fanNumber)) {
-      setError("Fayda FAN must be 16 digits (e.g. 1234567890123456)");
+      setError(translations.fayda.fanLabel + " (16 digits)");
       return;
     }
 
@@ -48,22 +52,22 @@ export default function FaydaVerifyScreen() {
       });
 
       Alert.alert(
-        "Fayda Verified",
-        "Your Ethiopian Fayda National ID has been successfully verified!",
-        [{ text: "Great", onPress: () => router.back() }]
+        translations.fayda.cardTitle,
+        translations.common.success,
+        [{ text: translations.common.continue, onPress: () => router.back() }]
       );
     } catch (err: any) {
-      const msg = err?.message || "Failed to verify Fayda ID with National ID registry";
+      const msg = err?.message || translations.common.error;
       setError(msg);
-      Alert.alert("Verification Failed", msg);
+      Alert.alert(translations.common.error, msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <Header title="Verify Fayda National ID" showBack />
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
+      <Header title={translations.fayda.cardTitle} showBack />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -73,18 +77,30 @@ export default function FaydaVerifyScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Fayda Info Card */}
-          <View className="bg-[#E6F4EE] border border-[#00684A]/30 rounded-2xl p-4 mb-6">
-            <Text className="text-base font-bold text-[#00684A] mb-1">
-              National Digital ID (eSignet / Fayda)
+          <View
+            style={{
+              backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
+              borderColor: isDark ? '#00A86B' : 'rgba(0, 104, 74, 0.3)',
+            }}
+            className="border rounded-2xl p-4 mb-6"
+          >
+            <Text
+              style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+              className="text-base font-bold mb-1"
+            >
+              {translations.fayda.cardSub}
             </Text>
-            <Text className="text-xs text-[#005038] leading-relaxed">
-              Verify your Ethiopian National ID to unlock higher delivery insurance, express parcel priority, and trusted sender badge across Rama Motor.
+            <Text
+              style={{ color: isDark ? '#A7F3D0' : '#005038' }}
+              className="text-xs leading-relaxed"
+            >
+              {translations.fayda.verificationDesc}
             </Text>
           </View>
 
           {/* Form Fields */}
           <Input
-            label="Fayda FAN (16-Digit National ID Number)"
+            label={translations.fayda.fanLabel}
             placeholder="e.g. 1234567890123456"
             keyboardType="number-pad"
             maxLength={16}
@@ -93,28 +109,28 @@ export default function FaydaVerifyScreen() {
               setFanNumber(val.replace(/\D/g, ""));
               if (error) setError("");
             }}
-            helper="16-digit Fayda Access Number on your digital or physical Fayda card"
+            helper={translations.fayda.fanLabel}
           />
 
           <Input
-            label="Fayda FIN (Alternative ID / Optional)"
+            label={translations.fayda.finLabel}
             placeholder="e.g. FIN987654321"
             value={finNumber}
             onChangeText={(val) => {
               setFinNumber(val);
               if (error) setError("");
             }}
-            helper="Optional FIN number from the Ethiopian National ID authority"
+            helper={translations.fayda.finLabel}
           />
 
           <Input
-            label="Fayda Verification Sandbox OTP"
+            label="Fayda OTP"
             placeholder="123456"
             keyboardType="number-pad"
             maxLength={6}
             value={testOtp}
             onChangeText={setTestOtp}
-            helper="In dev/sandbox environment, default test OTP is 123456"
+            helper={translations.fayda.sandboxOtpHelper}
           />
 
           {error ? (
@@ -123,7 +139,7 @@ export default function FaydaVerifyScreen() {
 
           <View className="mt-4">
             <Button
-              title="Verify with National Registry"
+              title={translations.fayda.verifyButton}
               onPress={handleVerify}
               loading={loading}
               size="lg"

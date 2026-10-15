@@ -3,4 +3,5 @@ export const STORAGE_KEYS = {
   USER_DATA: '@rama_customer_user_data',
   DEVICE_TOKEN: '@rama_customer_device_token',
   THEME_MODE: '@rama_customer_theme_mode',
+  LANGUAGE_CODE: '@rama_customer_language_code',
 };

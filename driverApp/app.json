@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "driverapp",
-    "slug": "driverapp",
+    "name": "Rama Delivery",
+    "slug": "rama-delivery-driver",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

@@ -33,7 +33,7 @@ function createTransporter() {
 export async function sendEmail({ to, subject, text, html }) {
   try {
     const transporter = createTransporter();
-    const from = process.env.EMAIL_FROM || `"Rama Motor Delivery" <${process.env.EMAIL_USER || 'no-reply@ramamotor.com'}>`;
+    const from = process.env.EMAIL_FROM || `"Rama Delivery" <${process.env.EMAIL_USER || 'no-reply@ramadelivery.et'}>`;
 
     if (!transporter) {
       console.warn(

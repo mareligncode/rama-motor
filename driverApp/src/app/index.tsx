@@ -23,7 +23,7 @@ export default function Index() {
         <Text className="text-3xl font-extrabold text-white">🏍</Text>
       </View>
       <Text className="text-2xl font-black text-[#111827] text-center tracking-tight">
-        Rama Motor
+        Rama Delivery
       </Text>
       <Text className="text-sm font-semibold text-[#00684A] mt-1 mb-8 text-center uppercase tracking-wider">
         Courier Pilot & Delivery Partner

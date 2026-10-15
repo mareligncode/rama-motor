@@ -13,11 +13,15 @@ import { Header } from "../components/common/Header";
 import { Input } from "../components/common/Input";
 import { Button } from "../components/common/Button";
 import { useAuth } from "../hooks/useAuth";
+import { useTranslation } from "../hooks/useTranslation";
+import { useTheme } from "../hooks/useTheme";
 import { formatEthiopianPhone } from "../utils/formatters";
 
-export default function DriverEditProfileScreen() {
+export default function EditProfileScreen() {
   const router = useRouter();
   const { user, updateProfile } = useAuth();
+  const { translations } = useTranslation();
+  const { colors } = useTheme();
 
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
@@ -28,7 +32,7 @@ export default function DriverEditProfileScreen() {
     setError("");
 
     if (!fullName.trim()) {
-      setError("Please enter your full courier name");
+      setError(translations.auth.fullNameLabel);
       return;
     }
 
@@ -40,19 +44,21 @@ export default function DriverEditProfileScreen() {
         profileImageUrl: profileImageUrl.trim() || undefined,
       });
 
-      Alert.alert("Profile Updated", "Driver details saved successfully.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        translations.common.success,
+        translations.common.save,
+        [{ text: translations.common.continue, onPress: () => router.back() }]
+      );
     } catch (err: any) {
-      setError(err?.message || "Failed to update profile");
+      setError(err?.message || translations.common.error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <Header title="Edit Courier Profile" showBack />
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
+      <Header title={translations.profile.editProfile} showBack />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -61,48 +67,44 @@ export default function DriverEditProfileScreen() {
           contentContainerStyle={{ padding: 20 }}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="items-center my-4">
-            <View className="w-20 h-20 rounded-full bg-[#00684A] items-center justify-center shadow-md shadow-[#00684A]/30 mb-2">
+          {/* Avatar Preview */}
+          <View className="items-center mb-6">
+            <View className="w-20 h-20 rounded-full bg-[#00684A] items-center justify-center mb-2 shadow-sm">
               <Text className="text-white text-3xl font-black">
                 {fullName ? fullName[0].toUpperCase() : "D"}
               </Text>
             </View>
-            <Text className="text-xs text-slate-400 font-medium">Motorcycle Courier Partner</Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-semibold">
+              {formatEthiopianPhone(user?.normalizedPhone || user?.phoneNumber || "")}
+            </Text>
           </View>
 
           <Input
-            label="Full Courier Name"
-            placeholder="e.g. Dawit Haile"
+            label={translations.auth.fullNameLabel}
+            placeholder={translations.auth.fullNamePlaceholder}
             value={fullName}
             onChangeText={(val) => {
               setFullName(val);
               if (error) setError("");
             }}
-            error={error}
+            helper={translations.auth.fullNameHelper}
           />
-
-          <View className="w-full mb-4">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Registered Mobile</Text>
-            <View className="bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-3">
-              <Text className="text-slate-500 font-medium">
-                {formatEthiopianPhone(user?.normalizedPhone || user?.phoneNumber || "")} (Courier Phone)
-              </Text>
-            </View>
-            <Text className="text-xs text-slate-400 mt-1 ml-1">
-              Used for client dispatch contact and pickup OTP verification.
-            </Text>
-          </View>
 
           <Input
-            label="Driver Photo URL (optional)"
-            placeholder="https://example.com/driver-photo.jpg"
+            label="Profile Photo URL (Optional)"
+            placeholder="https://..."
             value={profileImageUrl}
             onChangeText={setProfileImageUrl}
+            helper="Direct HTTPS link to avatar picture"
           />
+
+          {error ? (
+            <Text className="text-xs text-red-500 font-semibold mb-4 ml-1">{error}</Text>
+          ) : null}
 
           <View className="mt-4">
             <Button
-              title="Save Driver Profile"
+              title={translations.common.save}
               onPress={handleSave}
               loading={loading}
               size="lg"

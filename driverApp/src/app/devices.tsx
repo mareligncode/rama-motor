@@ -14,8 +14,13 @@ import { EmptyState } from "../components/common/EmptyState";
 import { deviceService } from "../services/device.service";
 import { UserDevice } from "../types/device.types";
 import { formatTimeAgo } from "../utils/formatters";
+import { useTranslation } from "../hooks/useTranslation";
+import { useTheme } from "../hooks/useTheme";
 
-export default function DriverDevicesScreen() {
+export default function DevicesScreen() {
+  const { translations } = useTranslation();
+  const { colors, isDark } = useTheme();
+
   const [devices, setDevices] = useState<UserDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingToken, setDeletingToken] = useState<string | null>(null);
@@ -28,7 +33,7 @@ export default function DriverDevicesScreen() {
         setDevices(res.data.devices);
       }
     } catch (err: any) {
-      console.warn("Error fetching driver devices:", err);
+      console.warn("Error fetching devices:", err);
     } finally {
       setLoading(false);
     }
@@ -40,12 +45,12 @@ export default function DriverDevicesScreen() {
 
   const handleUnregister = (token: string) => {
     Alert.alert(
-      "Revoke Dispatch Alerts",
-      "Are you sure you want to revoke push notifications on this device? You won't receive trip alerts.",
+      translations.common.confirm,
+      translations.profile.activeDevices,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: translations.common.cancel, style: "cancel" },
         {
-          text: "Revoke",
+          text: translations.common.confirm,
           style: "destructive",
           onPress: async () => {
             setDeletingToken(token);
@@ -53,7 +58,7 @@ export default function DriverDevicesScreen() {
               await deviceService.unregisterDevice(token);
               setDevices((prev) => prev.filter((d) => d.deviceToken !== token));
             } catch (err: any) {
-              Alert.alert("Error", err?.message || "Failed to remove device");
+              Alert.alert(translations.common.error, err?.message || translations.common.error);
             } finally {
               setDeletingToken(null);
             }
@@ -64,8 +69,8 @@ export default function DriverDevicesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <Header title="Driver Push Notification Devices" showBack />
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
+      <Header title={translations.profile.activeDevices} showBack />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -77,9 +82,18 @@ export default function DriverDevicesScreen() {
           keyExtractor={(item) => item._id || item.deviceToken}
           contentContainerStyle={{ padding: 20 }}
           renderItem={({ item }) => (
-            <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-3 flex-row items-center justify-between">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              }}
+              className="rounded-2xl p-4 border shadow-sm mb-3 flex-row items-center justify-between"
+            >
               <View className="flex-row items-center flex-1 mr-3">
-                <View className="w-11 h-11 rounded-xl bg-[#E6F4EE] items-center justify-center mr-3">
+                <View
+                  style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+                  className="w-11 h-11 rounded-xl items-center justify-center mr-3"
+                >
                   <Ionicons
                     name={
                       item.platform === "ios"
@@ -94,19 +108,22 @@ export default function DriverDevicesScreen() {
                 </View>
                 <View className="flex-1">
                   <View className="flex-row items-center space-x-2">
-                    <Text className="text-sm font-bold text-slate-900 capitalize">
-                      {item.platform} Rider Device
+                    <Text style={{ color: colors.textPrimary }} className="text-sm font-bold capitalize">
+                      {item.platform} Device
                     </Text>
-                    <View className="px-1.5 py-0.5 rounded bg-slate-100 ml-2">
-                      <Text className="text-[10px] font-semibold text-slate-600 uppercase">
+                    <View
+                      style={{ backgroundColor: colors.surfaceVariant }}
+                      className="px-1.5 py-0.5 rounded ml-2"
+                    >
+                      <Text style={{ color: colors.textSecondary }} className="text-[10px] font-semibold uppercase">
                         {item.provider}
                       </Text>
                     </View>
                   </View>
-                  <Text className="text-xs text-slate-400 mt-0.5" numberOfLines={1}>
+                  <Text style={{ color: colors.textMuted }} className="text-xs mt-0.5" numberOfLines={1}>
                     Token: {item.deviceToken}
                   </Text>
-                  <Text className="text-[11px] text-slate-500 mt-1">
+                  <Text style={{ color: colors.textSecondary }} className="text-[11px] mt-1">
                     Last active: {formatTimeAgo(item.lastSeenAt)}
                   </Text>
                 </View>
@@ -115,7 +132,7 @@ export default function DriverDevicesScreen() {
               <TouchableOpacity
                 onPress={() => handleUnregister(item.deviceToken)}
                 disabled={deletingToken === item.deviceToken}
-                className="w-9 h-9 rounded-full bg-red-50 items-center justify-center active:bg-red-100"
+                className="w-9 h-9 rounded-full bg-red-50 dark:bg-red-950 items-center justify-center active:bg-red-100"
               >
                 {deletingToken === item.deviceToken ? (
                   <ActivityIndicator size="small" color="#DC2626" />
@@ -128,8 +145,8 @@ export default function DriverDevicesScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="hardware-chip-outline"
-              title="No Registered Devices"
-              description="Your driver mobile device will be registered automatically upon shift login."
+              title={translations.profile.activeDevices}
+              description={translations.common.loading}
             />
           }
         />

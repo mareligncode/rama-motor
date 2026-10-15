@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "customerapp",
-    "slug": "customerapp",
+    "name": "Rama Delivery",
+    "slug": "rama-delivery",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

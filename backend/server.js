@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
-    service: 'Rama Motor Delivery Backend API',
+    service: 'Rama Delivery Backend API',
     version: '1.0.0',
     documentation: {
       auth: '/api/v1/auth',
@@ -42,7 +42,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Rama Motor Delivery Server running on http://localhost:${PORT}`);
+  console.log(`Rama Delivery Server running on http://localhost:${PORT}`);
 });
 
 export default app;

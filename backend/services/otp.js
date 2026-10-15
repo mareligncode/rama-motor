@@ -67,7 +67,7 @@ export async function createAndSendOtp({
   });
 
   // Compose SMS text
-  const smsText = `Your Rama Motor Delivery verification code is: ${code}. Valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share this code with anyone.`;
+  const smsText = `Your Rama Delivery verification code is: ${code}. Valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share this code with anyone.`;
 
   // Send OTP exclusively via SMS (as required: "including otp not otp by the email")
   const smsResult = await sendSms({

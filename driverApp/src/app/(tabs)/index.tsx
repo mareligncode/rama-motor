@@ -13,15 +13,26 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../../hooks/useAuth";
 import { useDriverDuty } from "../../hooks/useDriverDuty";
 import { useNotifications } from "../../hooks/useNotifications";
+import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import { FaydaDriverCard } from "../../components/modules/driver/FaydaDriverCard";
+import { LanguageSelectorModal } from "../../components/common/LanguageSelectorModal";
+import { ThemeSelectorModal } from "../../components/common/ThemeSelectorModal";
+import { ThemeDropdown } from "../../components/common/ThemeDropdown";
 
 export default function DriverHomeScreen() {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
   const { isOnline, toggleDuty, todayDeliveries, todayEarnings } = useDriverDuty();
   const { unreadCount, refreshNotifications } = useNotifications();
+  const { colors, isDark } = useTheme();
+  const { translations, language, supportedLanguages } = useTranslation();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [langModalVisible, setLangModalVisible] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+
+  const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -30,27 +41,57 @@ export default function DriverHomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAF9]">
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
       {/* Top Header matching driver screen 1 */}
-      <View className="flex-row items-center justify-between px-5 py-3.5 bg-white border-b border-slate-100">
+      <View
+        style={{
+          backgroundColor: colors.surface,
+          borderBottomColor: colors.border,
+        }}
+        className="flex-row items-center justify-between px-5 py-3.5 border-b"
+      >
         <View className="flex-row items-center space-x-2">
-          <View className="w-10 h-10 rounded-full bg-[#00684A] items-center justify-center">
+          <View className="w-10 h-10 rounded-full bg-[#00684A] items-center justify-center mr-2">
             <Ionicons name="bicycle" size={20} color="#FFFFFF" />
           </View>
-          <View className="ml-2">
-            <Text className="text-base font-black text-[#111827]">Rama Motor</Text>
+          <View>
+            <Text style={{ color: colors.textPrimary }} className="text-base font-black">
+              Rama Delivery
+            </Text>
             <Text className="text-[10px] font-bold text-[#00684A] tracking-wider uppercase">
-              PILOT ADDIS • COURIER
+              {translations.driver.pilotTitle}
             </Text>
           </View>
         </View>
 
         <View className="flex-row items-center space-x-2">
+          {/* Theme Changer Dropdown */}
+          <View className="mr-2">
+            <ThemeDropdown compact />
+          </View>
+
+          {/* Quick Language Toggle */}
+          <TouchableOpacity
+            onPress={() => setLangModalVisible(true)}
+            style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+            className="flex-row items-center px-2.5 py-1 rounded-full mr-2"
+          >
+            <Text className="text-xs mr-1">{currentLangObj.flag}</Text>
+            <Text
+              style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+              className="text-xs font-bold"
+            >
+              {currentLangObj.nativeName}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Notifications shortcut with unread badge */}
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/notifications" as any)}
-            className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center relative mr-2"
+            style={{ backgroundColor: colors.surfaceVariant }}
+            className="w-10 h-10 rounded-full items-center justify-center relative mr-2"
           >
-            <Ionicons name="notifications-outline" size={20} color="#111827" />
+            <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
             {unreadCount > 0 ? (
               <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
                 <Text className="text-white text-[10px] font-bold">{unreadCount}</Text>
@@ -77,24 +118,35 @@ export default function DriverHomeScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00684A" />}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="p-4">
           {/* Floating Shift Earnings & Online Toggle Card */}
-          <View className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm mb-3">
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            }}
+            className="rounded-3xl p-4 border shadow-sm mb-3"
+          >
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
-                <View className="w-11 h-11 rounded-2xl bg-[#E6F4EE] items-center justify-center mr-3">
+                <View
+                  style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+                  className="w-11 h-11 rounded-2xl items-center justify-center mr-3"
+                >
                   <Ionicons name="wallet-outline" size={22} color="#00684A" />
                 </View>
                 <View>
-                  <Text className="text-xs font-semibold text-slate-400">Today</Text>
-                  <Text className="text-xl font-black text-[#111827]">
+                  <Text style={{ color: colors.textSecondary }} className="text-xs font-semibold">
+                    {translations.driver.todayEarnings}
+                  </Text>
+                  <Text style={{ color: colors.textPrimary }} className="text-xl font-black">
                     ETB {todayEarnings.toLocaleString()}
                   </Text>
-                  <Text className="text-[11px] font-bold text-[#00684A]">
-                    ↗ +18% • {todayDeliveries} deliveries
+                  <Text style={{ color: isDark ? '#4ADE80' : '#00684A' }} className="text-[11px] font-bold">
+                    ↗ +18% • {todayDeliveries} {translations.driver.shiftTrips}
                   </Text>
                 </View>
               </View>
@@ -113,7 +165,7 @@ export default function DriverHomeScreen() {
                   }`}
                 />
                 <Text className="text-xs font-black text-white uppercase tracking-wider">
-                  {isOnline ? "ONLINE" : "OFFLINE"}
+                  {isOnline ? translations.driver.online : translations.driver.offline}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -121,21 +173,39 @@ export default function DriverHomeScreen() {
 
           {/* Status Pills under card */}
           <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-row items-center bg-[#E6F4EE] px-3 py-1.5 rounded-full flex-1 mr-2">
+            <View
+              style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+              className="flex-row items-center px-3 py-1.5 rounded-full flex-1 mr-2"
+            >
               <View className="w-2 h-2 rounded-full bg-[#00684A] mr-2" />
-              <Text className="text-xs font-bold text-[#00684A]" numberOfLines={1}>
-                {isOnline ? "Finding package requests in Bole..." : "Shift paused (Offline)"}
+              <Text
+                style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                className="text-xs font-bold"
+                numberOfLines={1}
+              >
+                {isOnline ? translations.driver.stayOnlinePrompt : translations.driver.goOnlinePrompt}
               </Text>
             </View>
 
-            <View className="flex-row items-center bg-white border border-slate-200 px-3 py-1.5 rounded-full">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              }}
+              className="flex-row items-center border px-3 py-1.5 rounded-full"
+            >
               <Ionicons name="navigate" size={12} color="#00684A" />
-              <Text className="text-xs font-bold text-slate-700 ml-1">GPS ±3m • 4G+</Text>
+              <Text style={{ color: colors.textPrimary }} className="text-xs font-bold ml-1">
+                GPS ±3m • 4G+
+              </Text>
             </View>
           </View>
 
           {/* Map View Canvas matching driver screen 1 */}
-          <View className="h-60 bg-emerald-950/10 rounded-3xl overflow-hidden relative border border-slate-200 mb-4 justify-between p-3.5">
+          <View
+            style={{ borderColor: colors.border }}
+            className="h-60 bg-emerald-950/15 rounded-3xl overflow-hidden relative border mb-4 justify-between p-3.5"
+          >
             <View className="space-y-1">
               <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 BOLE RD (AFRICA AVE) • CAMEROON ST
@@ -152,9 +222,12 @@ export default function DriverHomeScreen() {
                   <Ionicons name="navigate" size={20} color="#FFFFFF" />
                 </View>
               </View>
-              <View className="bg-white px-2 py-0.5 rounded-full border border-slate-200 mt-1 shadow-sm">
-                <Text className="text-[10px] font-bold text-slate-800">
-                  Bole Medhanialem • <Text className="text-amber-600">1.3x Surge</Text>
+              <View
+                style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+                className="px-2 py-0.5 rounded-full border mt-1 shadow-sm"
+              >
+                <Text style={{ color: colors.textPrimary }} className="text-[10px] font-bold">
+                  Bole Medhanialem • <Text className="text-amber-500 font-extrabold">1.3x Surge</Text>
                 </Text>
               </View>
             </View>
@@ -162,31 +235,43 @@ export default function DriverHomeScreen() {
             {/* Floating Map Action Controls on right */}
             <View className="absolute right-3.5 top-14 space-y-2">
               <TouchableOpacity
-                onPress={() => Alert.alert("SOS Emergency", "Connecting to Addis Police 991 & Rama Safety Center")}
-                className="w-10 h-10 rounded-full bg-red-50 border border-red-200 items-center justify-center shadow-sm"
+                onPress={() => Alert.alert(translations.driver.emergencySos, translations.driver.emergencyAlert)}
+                className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 items-center justify-center shadow-sm"
               >
                 <Ionicons name="shield" size={18} color="#DC2626" />
                 <Text className="text-[8px] font-bold text-red-600">SOS</Text>
               </TouchableOpacity>
-              <View className="w-9 h-9 rounded-full bg-white items-center justify-center shadow-sm">
+              <View
+                style={{ backgroundColor: colors.surface }}
+                className="w-9 h-9 rounded-full items-center justify-center shadow-sm"
+              >
                 <Ionicons name="layers-outline" size={18} color="#00684A" />
               </View>
-              <View className="w-9 h-9 rounded-full bg-white items-center justify-center shadow-sm">
+              <View
+                style={{ backgroundColor: colors.surface }}
+                className="w-9 h-9 rounded-full items-center justify-center shadow-sm"
+              >
                 <Ionicons name="locate-outline" size={18} color="#00684A" />
               </View>
             </View>
 
             {/* Demand Banner inside map */}
-            <View className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 flex-row items-center justify-between border border-slate-100 shadow-sm">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              }}
+              className="rounded-2xl p-2.5 flex-row items-center justify-between border shadow-sm"
+            >
               <View className="flex-row items-center flex-1 mr-2">
-                <View className="w-7 h-7 rounded-lg bg-blue-50 items-center justify-center mr-2">
+                <View className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950 items-center justify-center mr-2">
                   <Ionicons name="flame" size={16} color="#2563EB" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-xs font-bold text-slate-900" numberOfLines={1}>
-                    High demand at Bole Atlas
+                  <Text style={{ color: colors.textPrimary }} className="text-xs font-bold" numberOfLines={1}>
+                    {translations.driver.surgeNotice}
                   </Text>
-                  <Text className="text-[10px] text-slate-500">
+                  <Text style={{ color: colors.textSecondary }} className="text-[10px]">
                     ~3 min wait time • 700m away
                   </Text>
                 </View>
@@ -199,107 +284,196 @@ export default function DriverHomeScreen() {
           <FaydaDriverCard user={user} />
 
           {/* Shift Performance Summary Cards matching driver screen 1 */}
-          <View className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm mb-5">
-            <View className="w-10 h-1 rounded-full bg-slate-200 self-center mb-4" />
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            }}
+            className="rounded-3xl p-5 border shadow-sm mb-5"
+          >
+            <View
+              style={{ backgroundColor: colors.border }}
+              className="w-10 h-1 rounded-full self-center mb-4"
+            />
 
             <View className="flex-row justify-between mb-4">
               {/* Card 1: Completed Deliveries */}
-              <View className="w-[31%] bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <View
+                style={{
+                  backgroundColor: colors.surfaceVariant,
+                  borderColor: colors.border,
+                }}
+                className="w-[31%] p-3 rounded-2xl border"
+              >
                 <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-[10px] font-semibold text-slate-500">Completed</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-[10px] font-semibold">
+                    {translations.driver.shiftTrips}
+                  </Text>
                   <Ionicons name="checkmark-circle" size={14} color="#00684A" />
                 </View>
-                <Text className="text-base font-black text-slate-900">8 Trips</Text>
-                <Text className="text-[10px] text-[#00684A] font-semibold mt-0.5">
-                  4 left for +250 ETB
+                <Text style={{ color: colors.textPrimary }} className="text-base font-black">
+                  8 Trips
+                </Text>
+                <Text style={{ color: isDark ? '#4ADE80' : '#00684A' }} className="text-[10px] font-semibold mt-0.5">
+                  4 left (+250)
                 </Text>
               </View>
 
               {/* Card 2: On-Duty Hours */}
-              <View className="w-[31%] bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <View
+                style={{
+                  backgroundColor: colors.surfaceVariant,
+                  borderColor: colors.border,
+                }}
+                className="w-[31%] p-3 rounded-2xl border"
+              >
                 <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-[10px] font-semibold text-slate-500">On-Duty</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-[10px] font-semibold">
+                    {translations.driver.onDutyHours}
+                  </Text>
                   <Ionicons name="time-outline" size={14} color="#00684A" />
                 </View>
-                <Text className="text-base font-black text-slate-900">4h 15m</Text>
-                <Text className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                  Active shift
+                <Text style={{ color: colors.textPrimary }} className="text-base font-black">
+                  4h 15m
+                </Text>
+                <Text style={{ color: colors.textSecondary }} className="text-[10px] font-semibold mt-0.5">
+                  {translations.driver.activeShift}
                 </Text>
               </View>
 
               {/* Card 3: Acceptance Rate */}
-              <View className="w-[31%] bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <View
+                style={{
+                  backgroundColor: colors.surfaceVariant,
+                  borderColor: colors.border,
+                }}
+                className="w-[31%] p-3 rounded-2xl border"
+              >
                 <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-[10px] font-semibold text-slate-500">Acceptance</Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-[10px] font-semibold">
+                    {translations.driver.acceptanceRate}
+                  </Text>
                   <Ionicons name="shield-checkmark" size={14} color="#00684A" />
                 </View>
-                <Text className="text-base font-black text-slate-900">96%</Text>
-                <Text className="text-[10px] text-amber-700 font-bold mt-0.5">
-                  Tier: Gold Pilot
+                <Text style={{ color: colors.textPrimary }} className="text-base font-black">
+                  96%
+                </Text>
+                <Text className="text-[10px] text-amber-500 font-bold mt-0.5">
+                  {translations.driver.goldPilot}
                 </Text>
               </View>
             </View>
 
             {/* Daily Target Progress Bar */}
-            <View className="p-3.5 rounded-2xl bg-[#E6F4EE]/60 border border-[#00684A]/20 mb-4">
+            <View
+              style={{
+                backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
+                borderColor: isDark ? '#00A86B' : '#00684A',
+              }}
+              className="p-3.5 rounded-2xl border mb-4"
+            >
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-row items-center">
                   <Ionicons name="trophy-outline" size={16} color="#00684A" />
-                  <Text className="text-xs font-black text-[#00684A] ml-1.5">
-                    Daily Target: 12 Deliveries
+                  <Text
+                    style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                    className="text-xs font-black ml-1.5"
+                  >
+                    {translations.driver.targetProgress}: 12
                   </Text>
                 </View>
-                <Text className="text-xs font-extrabold text-slate-700">8 / 12 (67%)</Text>
+                <Text style={{ color: colors.textPrimary }} className="text-xs font-extrabold">
+                  8 / 12 (67%)
+                </Text>
               </View>
-              <View className="w-full h-2.5 bg-white rounded-full overflow-hidden">
+              <View
+                style={{ backgroundColor: colors.surface }}
+                className="w-full h-2.5 rounded-full overflow-hidden"
+              >
                 <View className="h-full bg-[#00684A] rounded-full" style={{ width: "67%" }} />
               </View>
             </View>
 
             {/* Service Wallet Card matching template */}
-            <View className="flex-row items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200 mb-4">
+            <View
+              style={{
+                backgroundColor: colors.surfaceVariant,
+                borderColor: colors.border,
+              }}
+              className="flex-row items-center justify-between p-3.5 rounded-2xl border mb-4"
+            >
               <View className="flex-row items-center flex-1 mr-2">
-                <View className="w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center mr-3">
+                <View
+                  style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+                  className="w-10 h-10 rounded-xl border items-center justify-center mr-3"
+                >
                   <Ionicons name="card-outline" size={20} color="#00684A" />
                 </View>
                 <View>
                   <View className="flex-row items-center">
-                    <Text className="text-xs font-semibold text-slate-500">Service Wallet</Text>
-                    <View className="bg-[#E6F4EE] px-1.5 py-0.2 rounded ml-1.5">
-                      <Text className="text-[9px] font-bold text-[#00684A]">Active</Text>
+                    <Text style={{ color: colors.textSecondary }} className="text-xs font-semibold">
+                      {translations.driver.serviceWallet}
+                    </Text>
+                    <View
+                      style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+                      className="px-1.5 py-0.2 rounded ml-1.5"
+                    >
+                      <Text
+                        style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                        className="text-[9px] font-bold"
+                      >
+                        {translations.driver.activeStatus}
+                      </Text>
                     </View>
                   </View>
-                  <Text className="text-sm font-black text-slate-900 mt-0.5">
-                    ETB 420.00 <Text className="text-[10px] text-slate-400 font-normal">(Min ETB 100)</Text>
+                  <Text style={{ color: colors.textPrimary }} className="text-sm font-black mt-0.5">
+                    ETB 420.00 <Text style={{ color: colors.textMuted }} className="text-[10px] font-normal">(Min ETB 100)</Text>
                   </Text>
                 </View>
               </View>
 
               <TouchableOpacity
                 onPress={() => Alert.alert("Telebirr Top-Up", "Service wallet recharge with Telebirr")}
-                className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl flex-row items-center shadow-sm"
+                style={{
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                }}
+                className="border px-3 py-1.5 rounded-xl flex-row items-center shadow-sm"
               >
                 <Ionicons name="add-circle" size={14} color="#00684A" />
-                <Text className="text-xs font-bold text-slate-800 ml-1">Telebirr</Text>
+                <Text style={{ color: colors.textPrimary }} className="text-xs font-bold ml-1">
+                  Telebirr
+                </Text>
               </TouchableOpacity>
             </View>
 
             {/* Emergency & Safety Hotline */}
             <TouchableOpacity
-              onPress={() => Alert.alert("Emergency", "Calling Addis Police 991 & Rama Safety Center")}
-              className="flex-row items-center justify-between p-3 rounded-xl bg-slate-50"
+              onPress={() => Alert.alert(translations.driver.emergencySos, translations.driver.emergencyAlert)}
+              style={{ backgroundColor: colors.surfaceVariant }}
+              className="flex-row items-center justify-between p-3 rounded-xl"
             >
               <View className="flex-row items-center">
                 <Ionicons name="warning" size={16} color="#DC2626" />
-                <Text className="text-xs font-bold text-slate-800 ml-2">
-                  Emergency Assist: Police 991 • Rama Safety Line
+                <Text style={{ color: colors.textPrimary }} className="text-xs font-bold ml-2">
+                  {translations.driver.emergencyLine}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
+              <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+
+      {/* Modals */}
+      <LanguageSelectorModal
+        visible={langModalVisible}
+        onClose={() => setLangModalVisible(false)}
+      />
+      <ThemeSelectorModal
+        visible={themeModalVisible}
+        onClose={() => setThemeModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }

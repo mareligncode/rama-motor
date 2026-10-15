@@ -119,7 +119,7 @@ export class ApiClient {
       }
 
       throw new ApiError(
-        error.message || 'Unable to connect to Rama Motor server. Please check your connection.',
+        error.message || 'Unable to connect to Rama Delivery server. Please check your connection.',
         0,
         error
       );

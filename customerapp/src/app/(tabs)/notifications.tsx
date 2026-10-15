@@ -10,9 +10,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNotifications } from "../../hooks/useNotifications";
+import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import { NotificationCard } from "../../components/modules/notifications/NotificationCard";
 import { EmptyState } from "../../components/common/EmptyState";
-import { NotificationType } from "../../types/notification.types";
 
 export default function NotificationsScreen() {
   const {
@@ -24,15 +25,18 @@ export default function NotificationsScreen() {
     markAllAsRead,
   } = useNotifications();
 
+  const { colors, isDark } = useTheme();
+  const { translations } = useTranslation();
+
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [markingAll, setMarkingAll] = useState(false);
 
   const filters = [
-    { key: "all", label: "All" },
-    { key: "unread", label: `Unread (${unreadCount})` },
-    { key: "delivery", label: "Deliveries" },
-    { key: "auth", label: "Security" },
-    { key: "payment", label: "Payments" },
+    { key: "all", label: translations.common.all },
+    { key: "unread", label: `${translations.notifications.filterUnread} (${unreadCount})` },
+    { key: "delivery", label: translations.notifications.filterOrders },
+    { key: "auth", label: translations.notifications.filterSecurity },
+    { key: "payment", label: translations.notifications.filterPayments },
   ];
 
   const filteredNotifications = notifications.filter((n) => {
@@ -49,13 +53,21 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
       {/* Top Header */}
-      <View className="px-5 py-3.5 bg-white border-b border-slate-100 flex-row items-center justify-between">
+      <View
+        style={{
+          backgroundColor: colors.surface,
+          borderBottomColor: colors.border,
+        }}
+        className="px-5 py-3.5 border-b flex-row items-center justify-between"
+      >
         <View>
-          <Text className="text-xl font-extrabold text-slate-900">Notifications</Text>
-          <Text className="text-xs text-slate-500">
-            {unreadCount > 0 ? `${unreadCount} unread message(s)` : "All caught up"}
+          <Text style={{ color: colors.textPrimary }} className="text-xl font-extrabold">
+            {translations.notifications.title}
+          </Text>
+          <Text style={{ color: colors.textSecondary }} className="text-xs">
+            {unreadCount > 0 ? `${unreadCount} ${translations.notifications.unreadCountSuffix}` : translations.notifications.allCaughtUp}
           </Text>
         </View>
 
@@ -63,14 +75,24 @@ export default function NotificationsScreen() {
           <TouchableOpacity
             onPress={handleMarkAllRead}
             disabled={markingAll}
-            className="flex-row items-center bg-[#E6F4EE] px-3 py-1.5 rounded-full"
+            style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+            className="flex-row items-center px-3 py-1.5 rounded-full"
           >
             {markingAll ? (
               <ActivityIndicator size="small" color="#00684A" />
             ) : (
               <>
-                <Ionicons name="checkmark-done" size={16} color="#00684A" />
-                <Text className="text-xs font-bold text-[#00684A] ml-1.5">Mark All Read</Text>
+                <Ionicons
+                  name="checkmark-done"
+                  size={16}
+                  color={isDark ? "#4ADE80" : "#00684A"}
+                />
+                <Text
+                  style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                  className="text-xs font-bold ml-1.5"
+                >
+                  {translations.notifications.markAllRead}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -78,7 +100,13 @@ export default function NotificationsScreen() {
       </View>
 
       {/* Horizontal Filter Chips */}
-      <View className="py-2.5 px-4 bg-white border-b border-slate-100">
+      <View
+        style={{
+          backgroundColor: colors.surface,
+          borderBottomColor: colors.border,
+        }}
+        className="py-2.5 px-4 border-b"
+      >
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -89,16 +117,21 @@ export default function NotificationsScreen() {
             return (
               <TouchableOpacity
                 onPress={() => setSelectedFilter(item.key)}
-                className={`px-3.5 py-1.5 rounded-full mr-2 border ${
-                  isActive
-                    ? "bg-[#00684A] border-[#00684A]"
-                    : "bg-slate-50 border-slate-200"
-                }`}
+                style={{
+                  backgroundColor: isActive
+                    ? "#00684A"
+                    : colors.surfaceVariant,
+                  borderColor: isActive
+                    ? "#00684A"
+                    : colors.border,
+                }}
+                className="px-3.5 py-1.5 rounded-full mr-2 border"
               >
                 <Text
-                  className={`text-xs font-bold ${
-                    isActive ? "text-white" : "text-slate-600"
-                  }`}
+                  style={{
+                    color: isActive ? "#FFFFFF" : colors.textSecondary,
+                  }}
+                  className="text-xs font-bold"
                 >
                   {item.label}
                 </Text>
@@ -114,7 +147,11 @@ export default function NotificationsScreen() {
         keyExtractor={(item) => item._id}
         contentContainerStyle={{ padding: 16, flexGrow: 1 }}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refreshNotifications} />
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refreshNotifications}
+            tintColor="#00684A"
+          />
         }
         renderItem={({ item }) => (
           <NotificationCard
@@ -125,12 +162,8 @@ export default function NotificationsScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="notifications-off-outline"
-            title="No Notifications"
-            description={
-              selectedFilter === "unread"
-                ? "You have read all your notifications!"
-                : "You don't have any notifications right now."
-            }
+            title={translations.notifications.emptyTitle}
+            description={translations.notifications.emptySubtitle}
           />
         }
       />

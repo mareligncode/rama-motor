@@ -4,8 +4,8 @@ function App() {
 
   return (
     <>
-      <h1>hello i am  web dashboard</h1>
-      <p>rama software and it solution motor delivery  platform</p>
+      <h1>Rama Delivery</h1>
+      <p>Rama Delivery - Operations & Dispatch Platform</p>
     </>
   )
 }

@@ -13,32 +13,40 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import { Button } from "../../components/common/Button";
+import { LanguageSelectorModal } from "../../components/common/LanguageSelectorModal";
+import { ThemeDropdown } from "../../components/common/ThemeDropdown";
 import { isValidEthiopianPhone, normalizeEthiopianPhone } from "../../utils/validators";
 
 export default function DriverLoginScreen() {
   const router = useRouter();
   const { requestOtp } = useAuth();
+  const { colors, isDark } = useTheme();
+  const { translations, language, supportedLanguages } = useTranslation();
 
   const [phone, setPhone] = useState("912345678");
-  const [language, setLanguage] = useState<"EN" | "AM">("EN");
+  const [langModalVisible, setLangModalVisible] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const cleanPhone = phone.replace(/\D/g, "");
   const isValid = isValidEthiopianPhone(phone);
-  const carrier = cleanPhone.startsWith("7") ? "Safaricom" : "Ethio Telecom";
+  const carrier = cleanPhone.startsWith("7") ? translations.auth.carrierSafari : translations.auth.carrierEthio;
+
+  const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
   const handleSendOtp = async () => {
     setError("");
 
     if (!cleanPhone) {
-      setError("Please enter your registered driver phone number");
+      setError(translations.common.error + ": " + translations.auth.phoneLabel);
       return;
     }
 
     if (!isValid) {
-      setError("Please enter a valid 9-digit Ethiopian mobile number");
+      setError("Please enter a valid 9-digit Ethiopian mobile number (9... / 7...)");
       return;
     }
 
@@ -54,34 +62,39 @@ export default function DriverLoginScreen() {
       router.push({
         pathname: "/(auth)/verify-otp" as any,
         params: {
-          phone: normalized,
-          devCode: res?.devCode || "",
-          purpose: "login",
+          phoneNumber: normalized,
+          devCode: res.devCode || "",
         },
       });
     } catch (err: any) {
-      const message = err?.message || "Failed to send verification code. Please try again.";
-      setError(message);
-      Alert.alert("Request Failed", message);
+      setError(err?.message || "Failed to send courier verification code");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAF9]">
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        {/* Top Navigation Bar matching UI Template */}
-        <View className="flex-row items-center justify-between px-5 py-3 bg-white border-b border-slate-100">
+        {/* Top App Bar */}
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          }}
+          className="flex-row items-center justify-between px-5 py-3 border-b"
+        >
           <View className="flex-row items-center space-x-2">
-            <View className="w-10 h-10 rounded-full bg-[#00684A] items-center justify-center">
+            <View className="w-10 h-10 rounded-full bg-[#00684A] items-center justify-center mr-2">
               <Ionicons name="bicycle" size={20} color="#FFFFFF" />
             </View>
-            <View className="ml-2">
-              <Text className="text-base font-black text-[#111827]">Rama Motor</Text>
+            <View>
+              <Text style={{ color: colors.textPrimary }} className="text-base font-black">
+                Rama Delivery
+              </Text>
               <Text className="text-[10px] font-bold text-[#00684A] uppercase tracking-wider">
                 COURIER PILOT ADDIS
               </Text>
@@ -89,77 +102,126 @@ export default function DriverLoginScreen() {
           </View>
 
           <View className="flex-row items-center space-x-2">
+            {/* Theme Changer Dropdown */}
+            <View className="mr-2">
+              <ThemeDropdown compact />
+            </View>
+
+            {/* Language Switcher Pill */}
             <TouchableOpacity
-              onPress={() => setLanguage(language === "EN" ? "AM" : "EN")}
-              className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-full mr-2"
+              onPress={() => setLangModalVisible(true)}
+              style={{
+                backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
+                borderColor: isDark ? '#00A86B' : '#00684A',
+              }}
+              className="flex-row items-center px-3 py-1.5 rounded-full border mr-2"
             >
-              <Text className={`text-xs font-bold ${language === "EN" ? "text-[#00684A]" : "text-slate-400"}`}>
-                EN
+              <Text className="text-xs mr-1">{currentLangObj.flag}</Text>
+              <Text
+                style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                className="text-xs font-bold"
+              >
+                {currentLangObj.nativeName}
               </Text>
-              <Text className="text-xs text-slate-300 mx-1">|</Text>
-              <Text className={`text-xs font-bold ${language === "AM" ? "text-[#00684A]" : "text-slate-400"}`}>
-                አማ
-              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={12}
+                color={isDark ? "#4ADE80" : "#00684A"}
+                style={{ marginLeft: 3 }}
+              />
             </TouchableOpacity>
 
             <View className="w-9 h-9 rounded-full bg-[#00684A] items-center justify-center">
-              <Ionicons name="person" size={18} color="#FFFFFF" />
+              <Ionicons name="shield-checkmark" size={18} color="#FFFFFF" />
             </View>
           </View>
         </View>
 
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Trust Badges */}
-          <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-row items-center bg-[#E6F4EE] px-3 py-1 rounded-full">
-              <View className="w-2 h-2 rounded-full bg-[#00684A] mr-2" />
-              <Text className="text-xs font-bold text-[#00684A]">Addis Courier Pilot</Text>
+          {/* Top Carrier Status pill */}
+          <View className="flex-row justify-between items-center mb-3">
+            <View
+              style={{ backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }}
+              className="flex-row items-center px-2.5 py-1 rounded-full"
+            >
+              <View className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5" />
+              <Text style={{ color: colors.textSecondary }} className="text-xs font-semibold">
+                Network: {carrier}
+              </Text>
             </View>
             <View className="flex-row items-center">
-              <Ionicons name="shield-checkmark" size={16} color="#00684A" />
-              <Text className="text-xs font-bold text-[#00684A] ml-1">Transport Bureau Certified</Text>
+              <Ionicons name="flash" size={14} color="#00684A" />
+              <Text className="text-xs font-bold text-[#00684A] ml-1">Live Dispatch</Text>
             </View>
           </View>
 
           {/* Role Pill */}
-          <View className="self-start px-2.5 py-1 rounded-md bg-[#E6F4EE] mb-2">
-            <Text className="text-[11px] font-black text-[#00684A] uppercase tracking-wider">
-              COURIER APP • Motorcycle Partner Shift
+          <View
+            style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+            className="self-start px-2.5 py-1 rounded-md mb-2"
+          >
+            <Text
+              style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+              className="text-[11px] font-black uppercase tracking-wider"
+            >
+              DRIVER APP • Commercial Motorcycle Courier
             </Text>
           </View>
 
           {/* Heading */}
-          <Text className="text-2xl font-black text-[#111827] tracking-tight mb-1">
-            Driver & Courier Sign-in
+          <Text style={{ color: colors.textPrimary }} className="text-2xl font-black tracking-tight mb-1">
+            {translations.auth.loginTitle}
           </Text>
           <Text className="text-sm text-[#00684A] font-semibold mb-2">
-            የአሽከርካሪ ስልክ ቁጥር ያስገቡ
+            {translations.auth.loginSubtitle}
           </Text>
-          <Text className="text-xs text-slate-500 leading-relaxed mb-5">
-            Enter your registered courier phone number to connect to Rama Motor live dispatch and accept package deliveries.
+          <Text style={{ color: colors.textSecondary }} className="text-xs leading-relaxed mb-5">
+            {translations.auth.loginSubDescription}
           </Text>
 
           {/* Mobile Number Box Card */}
-          <View className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-4">
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            }}
+            className="rounded-2xl p-4 border shadow-sm mb-4"
+          >
             <View className="flex-row justify-between items-center mb-2">
-              <Text className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Driver Mobile Number
+              <Text style={{ color: colors.textSecondary }} className="text-[11px] font-bold uppercase tracking-wider">
+                {translations.auth.phoneLabel}
               </Text>
-              <View className="flex-row items-center bg-slate-100 px-2 py-0.5 rounded-full">
+              <View
+                style={{ backgroundColor: colors.surfaceVariant }}
+                className="flex-row items-center px-2 py-0.5 rounded-full"
+              >
                 <Ionicons name="radio" size={12} color="#00684A" />
-                <Text className="text-[11px] font-semibold text-slate-700 ml-1">{carrier}</Text>
+                <Text style={{ color: colors.textPrimary }} className="text-[11px] font-semibold ml-1">
+                  {carrier}
+                </Text>
               </View>
             </View>
 
-            <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 mb-2">
-              <View className="flex-row items-center pr-2.5 mr-2.5 border-r border-slate-300">
+            {/* Input Row */}
+            <View
+              style={{
+                backgroundColor: colors.inputBackground,
+                borderColor: error ? "#EF4444" : colors.border,
+              }}
+              className="flex-row items-center border rounded-xl px-3 py-2.5 mb-2"
+            >
+              <View
+                style={{ borderRightColor: colors.border }}
+                className="flex-row items-center pr-2.5 mr-2.5 border-r"
+              >
                 <Text className="text-xl mr-1.5">🇪🇹</Text>
-                <Text className="text-base font-bold text-slate-900">+251</Text>
-                <Ionicons name="chevron-down" size={14} color="#64748B" style={{ marginLeft: 2 }} />
+                <Text style={{ color: colors.textPrimary }} className="text-base font-bold">
+                  +251
+                </Text>
+                <Ionicons name="chevron-down" size={14} color={colors.textSecondary} style={{ marginLeft: 2 }} />
               </View>
 
               <TextInput
@@ -169,124 +231,154 @@ export default function DriverLoginScreen() {
                   if (error) setError("");
                 }}
                 placeholder="91 234 5678"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 maxLength={10}
-                className="flex-1 text-lg font-bold text-slate-900 py-0 tracking-wider"
+                style={{ color: colors.textPrimary }}
+                className="flex-1 text-lg font-bold py-0 tracking-wider"
               />
-
-              {phone ? (
-                <TouchableOpacity onPress={() => setPhone("")}>
-                  <Ionicons name="close-circle" size={18} color="#94A3B8" />
-                </TouchableOpacity>
-              ) : null}
             </View>
 
-            <Text className="text-[11px] text-slate-400 mb-2">
-              Enter 9 digits without initial 0 (e.g., 91 234 5678 or 71 234 5678)
-            </Text>
-
-            {isValid ? (
-              <View className="flex-row items-center bg-[#E6F4EE] px-3 py-1.5 rounded-lg">
-                <Ionicons name="checkmark-circle" size={16} color="#00684A" />
-                <Text className="text-xs font-bold text-[#00684A] ml-2">
-                  Verified Courier SIM • {carrier} network
-                </Text>
+            {error ? (
+              <View className="flex-row items-center mt-1">
+                <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                <Text className="text-xs text-red-500 ml-1 font-medium">{error}</Text>
               </View>
             ) : null}
 
-            {error ? (
-              <Text className="text-xs text-red-500 font-semibold mt-1.5">{error}</Text>
-            ) : null}
-
-            <View className="flex-row items-center mt-3 pt-3 border-t border-slate-100">
-              <Text className="text-[11px] text-slate-400 mr-2">Quick presets:</Text>
-              <TouchableOpacity
-                onPress={() => setPhone("912345678")}
-                className="bg-slate-100 px-2.5 py-1 rounded-full mr-2"
-              >
-                <Text className="text-[11px] font-bold text-slate-700">91 (Ethio)</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setPhone("712345678")}
-                className="bg-slate-100 px-2.5 py-1 rounded-full mr-2"
-              >
-                <Text className="text-[11px] font-bold text-slate-700">71 (Safari)</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setPhone("")}
-                className="bg-red-50 px-2.5 py-1 rounded-full"
-              >
-                <Text className="text-[11px] font-bold text-red-700">Clear</Text>
-              </TouchableOpacity>
+            {/* Quick Prefixes Row */}
+            <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Text style={{ color: colors.textMuted }} className="text-[11px] font-medium">
+                {translations.auth.quickNetwork}:
+              </Text>
+              <View className="flex-row space-x-1.5">
+                <TouchableOpacity
+                  onPress={() => setPhone("91" + phone.slice(2))}
+                  style={{ backgroundColor: colors.surfaceVariant }}
+                  className="px-2.5 py-1 rounded-md active:opacity-70 mr-1.5"
+                >
+                  <Text style={{ color: colors.textPrimary }} className="text-[11px] font-bold">
+                    91 Ethio
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setPhone("92" + phone.slice(2))}
+                  style={{ backgroundColor: colors.surfaceVariant }}
+                  className="px-2.5 py-1 rounded-md active:opacity-70 mr-1.5"
+                >
+                  <Text style={{ color: colors.textPrimary }} className="text-[11px] font-bold">
+                    92 Ethio
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setPhone("71" + phone.slice(2))}
+                  style={{ backgroundColor: colors.surfaceVariant }}
+                  className="px-2.5 py-1 rounded-md active:opacity-70"
+                >
+                  <Text style={{ color: colors.textPrimary }} className="text-[11px] font-bold">
+                    71 Safari
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
 
           {/* Action Button */}
           <Button
-            title="Send Driver verification code"
+            title={translations.auth.getOtpBtn}
             onPress={handleSendOtp}
             loading={loading}
             size="lg"
             rightIcon={<Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
           />
 
-          <View className="flex-row items-center justify-center mt-3 mb-6">
-            <Ionicons name="flash" size={14} color="#00684A" />
-            <Text className="text-xs text-slate-500 font-medium ml-1">
-              Live Courier Dispatch Gateway: <Text className="font-bold text-slate-800">Ready</Text>
-            </Text>
-          </View>
+          {/* Driver Feature Cards */}
+          <View className="mt-6 space-y-3">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              }}
+              className="flex-row items-center p-3.5 rounded-2xl border shadow-sm mb-2.5"
+            >
+              <View
+                style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+                className="w-11 h-11 rounded-xl items-center justify-center mr-3"
+              >
+                <Ionicons name="bicycle-outline" size={22} color="#00684A" />
+              </View>
+              <View className="flex-1">
+                <Text style={{ color: colors.textPrimary }} className="text-sm font-bold">
+                  {translations.auth.featureFleetTitle}
+                </Text>
+                <Text style={{ color: colors.textSecondary }} className="text-xs mt-0.5">
+                  {translations.auth.featureFleetDesc}
+                </Text>
+              </View>
+            </View>
 
-          {/* Courier Benefits Cards */}
-          <View className="space-y-3 mb-6">
-            <View className="flex-row items-center bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-              <View className="w-11 h-11 rounded-xl bg-[#E6F4EE] items-center justify-center mr-3">
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              }}
+              className="flex-row items-center p-3.5 rounded-2xl border shadow-sm mb-2.5"
+            >
+              <View className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950 items-center justify-center mr-3">
+                <Ionicons name="shield-checkmark-outline" size={22} color="#2563EB" />
+              </View>
+              <View className="flex-1">
+                <Text style={{ color: colors.textPrimary }} className="text-sm font-bold">
+                  {translations.auth.featureFaydaDriverTitle}
+                </Text>
+                <Text style={{ color: colors.textSecondary }} className="text-xs mt-0.5">
+                  {translations.auth.featureFaydaDriverDesc}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              }}
+              className="flex-row items-center p-3.5 rounded-2xl border shadow-sm"
+            >
+              <View
+                style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+                className="w-11 h-11 rounded-xl items-center justify-center mr-3"
+              >
                 <Ionicons name="cash-outline" size={22} color="#00684A" />
               </View>
               <View className="flex-1">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm font-bold text-slate-900">Daily Cash & Telebirr Payouts</Text>
-                  <View className="bg-emerald-100 px-2 py-0.5 rounded-full">
-                    <Text className="text-[10px] font-bold text-[#00684A]">Instant</Text>
-                  </View>
-                </View>
-                <Text className="text-xs text-slate-500 mt-0.5">
-                  Keep up to 90% of item delivery fees directly in hand or wallet
+                <Text style={{ color: colors.textPrimary }} className="text-sm font-bold">
+                  {translations.auth.featureTelebirrPayoutTitle}
                 </Text>
-              </View>
-            </View>
-
-            <View className="flex-row items-center bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-              <View className="w-11 h-11 rounded-xl bg-[#E6F4EE] items-center justify-center mr-3">
-                <Ionicons name="keypad-outline" size={22} color="#00684A" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-sm font-bold text-slate-900">Mandatory Handover OTP</Text>
-                <Text className="text-xs text-slate-500 mt-0.5">
-                  Sender and recipient codes protect you against package disputes
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex-row items-center bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-              <View className="w-11 h-11 rounded-xl bg-[#E6F4EE] items-center justify-center mr-3">
-                <Ionicons name="card-outline" size={22} color="#00684A" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-sm font-bold text-slate-900">Fayda National ID Integration</Text>
-                <Text className="text-xs text-slate-500 mt-0.5">
-                  Official courier registration approved by Addis Ababa Transport Bureau
+                <Text style={{ color: colors.textSecondary }} className="text-xs mt-0.5">
+                  {translations.auth.featureTelebirrPayoutDesc}
                 </Text>
               </View>
             </View>
           </View>
 
-          <Text className="text-[11px] text-slate-400 text-center leading-relaxed mb-2">
-            By signing in, you confirm your valid motorcycle courier license and commitment to Addis Ababa traffic safety standards.
+          {/* Legal Footer */}
+          <Text style={{ color: colors.textMuted }} className="text-[11px] text-center leading-relaxed mt-6 mb-2">
+            {translations.auth.termsNotice}
           </Text>
+          <View className="flex-row items-center justify-center">
+            <Ionicons name="shield-checkmark-outline" size={14} color={colors.textSecondary} />
+            <Text style={{ color: colors.textSecondary }} className="text-[11px] font-medium ml-1">
+              {translations.auth.driverSafetyProtocol}
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Language Selector Modal */}
+      <LanguageSelectorModal
+        visible={langModalVisible}
+        onClose={() => setLangModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }

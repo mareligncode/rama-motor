@@ -3,9 +3,13 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useNotifications } from "../../hooks/useNotifications";
 import { useDeviceRegistration } from "../../hooks/useDeviceRegistration";
+import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function DriverTabLayout() {
   const { unreadCount } = useNotifications();
+  const { colors, isDark } = useTheme();
+  const { translations } = useTranslation();
 
   // Register device push token automatically for driver
   useDeviceRegistration();
@@ -14,11 +18,11 @@ export default function DriverTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#00684A", // Exact deep forest green from UI screens
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: isDark ? "#4ADE80" : "#00684A",
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#E2E8F0",
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           height: 62,
           paddingBottom: 8,
@@ -33,7 +37,7 @@ export default function DriverTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Duty & Shift",
+          title: translations.navigation.home,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="speedometer-outline" size={size} color={color} />
           ),
@@ -42,7 +46,7 @@ export default function DriverTabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: "Dispatch Alerts",
+          title: translations.navigation.notifications,
           tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
           tabBarBadgeStyle: {
             backgroundColor: "#EF4444",
@@ -58,7 +62,7 @@ export default function DriverTabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Driver Profile",
+          title: translations.navigation.profile,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),

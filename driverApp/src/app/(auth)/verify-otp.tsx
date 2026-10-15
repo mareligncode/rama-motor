@@ -12,19 +12,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import { OtpInput } from "../../components/modules/auth/OtpInput";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
+import { LanguageSelectorModal } from "../../components/common/LanguageSelectorModal";
+import { ThemeDropdown } from "../../components/common/ThemeDropdown";
 import { formatEthiopianPhone } from "../../utils/formatters";
 import { isValidOtp } from "../../utils/validators";
 
 export default function DriverVerifyOtpScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ phone: string; devCode?: string; purpose?: string }>();
-  const phone = params.phone || "";
+  const params = useLocalSearchParams<{ phoneNumber: string; devCode?: string; purpose?: string }>();
+  const phone = params.phoneNumber || "";
   const devCode = params.devCode || "";
 
   const { verifyOtp, requestOtp } = useAuth();
+  const { colors, isDark } = useTheme();
+  const { translations, language, supportedLanguages } = useTranslation();
 
   const [code, setCode] = useState(devCode);
   const [fullName, setFullName] = useState("");
@@ -33,7 +39,9 @@ export default function DriverVerifyOtpScreen() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
-  const [language, setLanguage] = useState<"EN" | "AM">("EN");
+  const [langModalVisible, setLangModalVisible] = useState(false);
+
+  const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
   useEffect(() => {
     if (timer <= 0) {
@@ -50,66 +58,68 @@ export default function DriverVerifyOtpScreen() {
     setError("");
 
     if (!isValidOtp(code)) {
-      setError("Please enter the complete 6-digit verification code");
+      setError("Please enter the complete 6-digit courier dispatch code");
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
       await verifyOtp({
         phoneNumber: phone,
-        code: code.trim(),
-        fullName: fullName.trim() || undefined,
+        code,
         role: "driver",
+        fullName: fullName.trim() || undefined,
       });
 
       router.replace("/(tabs)" as any);
     } catch (err: any) {
-      const message = err?.message || "Invalid or expired verification code";
-      setError(message);
+      setError(err?.message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleResend = async () => {
-    if (!canResend || resending) return;
-    setResending(true);
-    setError("");
+    if (!canResend) return;
 
     try {
-      const res = await requestOtp({
+      setResending(true);
+      setError("");
+      await requestOtp({
         phoneNumber: phone,
         purpose: "login",
       });
 
-      if (res?.devCode) {
-        setCode(res.devCode);
-      }
-
       setTimer(60);
       setCanResend(false);
-      Alert.alert("Code Dispatched", "A new driver authentication code has been sent via SMS.");
+      Alert.alert("Code Sent", "A fresh 6-digit dispatch code has been sent to your phone via SMS.");
     } catch (err: any) {
-      Alert.alert("Error", err?.message || "Failed to resend code");
+      setError(err?.message || "Failed to resend code");
     } finally {
       setResending(false);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8FAF9]">
+    <SafeAreaView style={{ backgroundColor: colors.background }} className="flex-1">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        <View className="flex-row items-center justify-between px-5 py-3 bg-white border-b border-slate-100">
+        {/* Top Header */}
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          }}
+          className="flex-row items-center justify-between px-5 py-3 border-b"
+        >
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center mr-2"
+            style={{ backgroundColor: colors.surfaceVariant }}
+            className="w-9 h-9 rounded-full items-center justify-center mr-2"
           >
-            <Ionicons name="arrow-back" size={20} color="#111827" />
+            <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <View className="flex-row items-center flex-1 ml-1">
@@ -117,26 +127,37 @@ export default function DriverVerifyOtpScreen() {
               <Ionicons name="bicycle" size={16} color="#FFFFFF" />
             </View>
             <View>
-              <Text className="text-sm font-black text-[#111827]">Rama Motor</Text>
+              <Text style={{ color: colors.textPrimary }} className="text-sm font-black">
+                Rama Delivery
+              </Text>
               <Text className="text-[9px] font-bold text-[#00684A] uppercase">COURIER DISPATCH</Text>
             </View>
           </View>
 
           <View className="flex-row items-center space-x-2">
+            {/* Theme Changer Dropdown */}
+            <View className="mr-1.5">
+              <ThemeDropdown compact />
+            </View>
+
             <TouchableOpacity
-              onPress={() => setLanguage(language === "EN" ? "AM" : "EN")}
-              className="flex-row items-center bg-slate-100 px-2.5 py-1 rounded-full mr-2"
+              onPress={() => setLangModalVisible(true)}
+              style={{
+                backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
+                borderColor: isDark ? '#00A86B' : '#00684A',
+              }}
+              className="flex-row items-center px-2.5 py-1 rounded-full border mr-2"
             >
-              <Text className={`text-xs font-bold ${language === "EN" ? "text-[#00684A]" : "text-slate-400"}`}>
-                EN
-              </Text>
-              <Text className="text-xs text-slate-300 mx-1">|</Text>
-              <Text className={`text-xs font-bold ${language === "AM" ? "text-[#00684A]" : "text-slate-400"}`}>
-                አማ
+              <Text className="text-xs mr-1">{currentLangObj.flag}</Text>
+              <Text
+                style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                className="text-xs font-bold"
+              >
+                {currentLangObj.nativeName}
               </Text>
             </TouchableOpacity>
             <View className="w-8 h-8 rounded-full bg-[#00684A] items-center justify-center">
-              <Ionicons name="person" size={16} color="#FFFFFF" />
+              <Ionicons name="shield-checkmark" size={16} color="#FFFFFF" />
             </View>
           </View>
         </View>
@@ -146,32 +167,58 @@ export default function DriverVerifyOtpScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Status Badges */}
           <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-row items-center bg-[#E6F4EE] px-3 py-1 rounded-full">
+            <View
+              style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
+              className="flex-row items-center px-3 py-1 rounded-full"
+            >
               <View className="w-2 h-2 rounded-full bg-[#00684A] mr-2" />
-              <Text className="text-xs font-bold text-[#00684A]">Courier Gateway Active</Text>
+              <Text
+                style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                className="text-xs font-bold"
+              >
+                {translations.auth.courierLineActive}
+              </Text>
             </View>
-            <View className="flex-row items-center bg-slate-100 px-2.5 py-1 rounded-full">
+            <TouchableOpacity
+              onPress={() => Alert.alert(translations.auth.support, translations.auth.supportLine)}
+              style={{ backgroundColor: colors.surfaceVariant }}
+              className="flex-row items-center px-2.5 py-1 rounded-full"
+            >
               <Ionicons name="headset-outline" size={14} color="#00684A" />
-              <Text className="text-xs font-bold text-[#00684A] ml-1">Dispatch Support</Text>
-            </View>
+              <Text className="text-xs font-bold text-[#00684A] ml-1">{translations.auth.support}</Text>
+            </TouchableOpacity>
           </View>
 
-          <Text className="text-2xl font-black text-[#111827] tracking-tight mb-1">
-            Verify Driver Mobile
+          {/* Heading */}
+          <Text style={{ color: colors.textPrimary }} className="text-2xl font-black tracking-tight mb-1">
+            {translations.auth.verifyOtpTitle}
           </Text>
           <Text className="text-sm text-[#00684A] font-semibold mb-4">
-            የማረጋገጫ ኮድ ያስገቡ
+            {translations.auth.verifyOtpSubtitle}
           </Text>
 
-          <View className="flex-row items-center justify-between bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-5">
+          {/* Phone Details Card with Edit action */}
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            }}
+            className="flex-row items-center justify-between rounded-2xl p-4 border shadow-sm mb-5"
+          >
             <View className="flex-row items-center flex-1 mr-2">
-              <View className="w-11 h-11 rounded-xl bg-slate-100 items-center justify-center mr-3">
-                <Ionicons name="phone-portrait-outline" size={22} color="#111827" />
+              <View
+                style={{ backgroundColor: colors.surfaceVariant }}
+                className="w-11 h-11 rounded-xl items-center justify-center mr-3"
+              >
+                <Ionicons name="phone-portrait-outline" size={22} color={colors.textPrimary} />
               </View>
               <View>
-                <Text className="text-xs text-slate-400 font-medium">Courier code sent to</Text>
-                <Text className="text-base font-black text-slate-900 tracking-wide">
+                <Text style={{ color: colors.textSecondary }} className="text-xs font-medium">
+                  {translations.auth.otpSentTo}
+                </Text>
+                <Text style={{ color: colors.textPrimary }} className="text-base font-black tracking-wide">
                   {formatEthiopianPhone(phone)}
                 </Text>
               </View>
@@ -179,71 +226,105 @@ export default function DriverVerifyOtpScreen() {
 
             <TouchableOpacity
               onPress={() => router.back()}
-              className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-xl"
+              style={{
+                backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
+                borderColor: isDark ? '#00A86B' : '#00684A',
+              }}
+              className="px-3 py-1.5 rounded-xl border flex-row items-center"
             >
-              <Ionicons name="pencil" size={14} color="#00684A" />
-              <Text className="text-xs font-bold text-[#00684A] ml-1">Edit</Text>
+              <Ionicons name="pencil" size={12} color="#00684A" />
+              <Text className="text-xs font-bold text-[#00684A] ml-1">{translations.auth.editPhone}</Text>
             </TouchableOpacity>
           </View>
 
-          <View className="flex-row items-center justify-between px-1 mb-1">
-            <Text className="text-[11px] font-black text-slate-500 uppercase tracking-wider">
-              6-Digit Security Token
-            </Text>
-            <Text className="text-xs font-bold text-slate-400">
-              Digits ({code.length} / 6)
-            </Text>
-          </View>
-
-          <OtpInput
-            code={code}
-            onChangeCode={(val) => {
-              setCode(val);
-              if (error) setError("");
+          {/* 6-Digit Cells Card */}
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
             }}
-            error={error}
-            devCodeHint={devCode}
-            onDevCodeFill={() => setCode(devCode)}
-          />
+            className="rounded-3xl p-5 border shadow-sm mb-5"
+          >
+            <Text style={{ color: colors.textSecondary }} className="text-xs font-bold uppercase tracking-wider text-center mb-4">
+              {translations.auth.enterCode}
+            </Text>
 
-          <View className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-4">
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-full border-2 border-[#00684A] items-center justify-center mr-3 bg-[#E6F4EE]">
-                  <Text className="text-xs font-black text-[#00684A]">{timer}s</Text>
-                </View>
-                <View>
-                  <Text className="text-sm font-bold text-slate-900">Didn't receive the SMS?</Text>
-                  <Text className="text-xs text-slate-400">
-                    {canResend ? "Resend is now ready" : `Resend code in 00:${timer < 10 ? `0${timer}` : timer}`}
-                  </Text>
-                </View>
+            <OtpInput
+              length={6}
+              code={code}
+              onChangeCode={(val: string) => {
+                setCode(val);
+                if (error) setError("");
+              }}
+              error={error}
+            />
+
+            {/* Circular Countdown Badge */}
+            <View className="items-center mt-5">
+              <View
+                style={{
+                  backgroundColor: canResend
+                    ? isDark ? '#0E3A2B' : '#E6F4EE'
+                    : colors.surfaceVariant,
+                }}
+                className="flex-row items-center px-4 py-2 rounded-full"
+              >
+                <Ionicons
+                  name={canResend ? "checkmark-circle" : "timer-outline"}
+                  size={16}
+                  color="#00684A"
+                />
+                <Text className="text-xs font-bold text-[#00684A] ml-2">
+                  {canResend
+                    ? translations.auth.readyToResend
+                    : `${translations.auth.resendIn} ${timer}s`}
+                </Text>
               </View>
+            </View>
 
+            {/* Resend Action */}
+            <View className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <Text style={{ color: colors.textMuted }} className="text-xs text-center mb-3">
+                {translations.auth.didntReceive}
+              </Text>
               <TouchableOpacity
                 onPress={handleResend}
                 disabled={!canResend || resending}
-                className={`px-3 py-1.5 rounded-xl ${canResend ? "bg-[#00684A]" : "bg-slate-100"}`}
+                style={{
+                  backgroundColor: canResend ? "#00684A" : colors.surfaceVariant,
+                }}
+                className="py-2.5 px-4 rounded-xl flex-row items-center justify-center self-center"
               >
-                <Text className={`text-xs font-bold ${canResend ? "text-white" : "text-slate-400"}`}>
-                  {resending ? "Sending..." : "Resend"}
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={16}
+                  color={canResend ? "#FFFFFF" : colors.textMuted}
+                />
+                <Text
+                  style={{
+                    color: canResend ? "#FFFFFF" : colors.textMuted,
+                  }}
+                  className="text-xs font-bold ml-1.5"
+                >
+                  {translations.auth.resendSms}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
+          {/* Full Name Input */}
           <View className="mb-4">
             <Input
-              label="Courier Full Name (optional for new drivers)"
-              placeholder="e.g. Dawit Haile"
+              label={translations.auth.fullNameLabel}
+              placeholder={translations.auth.fullNamePlaceholder}
               value={fullName}
               onChangeText={setFullName}
-              helper="Name shown on client dispatch packages and delivery tracking"
+              helper={translations.auth.fullNameHelper}
             />
           </View>
 
           <Button
-            title="Verify & Start Courier Shift"
+            title={translations.auth.verifyAndContinue}
             onPress={handleVerify}
             loading={loading}
             size="lg"
@@ -251,6 +332,12 @@ export default function DriverVerifyOtpScreen() {
           />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Language Selector Modal */}
+      <LanguageSelectorModal
+        visible={langModalVisible}
+        onClose={() => setLangModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
