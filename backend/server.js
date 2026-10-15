@@ -1,29 +1,48 @@
-import express from 'express'
-import dotenv from 'dotenv'
-import cors from 'cors'
-dotenv.config()
-const PORT=process.env.PORT||3000
-const app=express()
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({
-    extended:true
-}))
-app.get("/",(req,res)=>{
-    res.json(
-        {
-            message:"rama mototr is live...",
-            endpoinst:{
-                get:"/get",
-                post:"/post",
-                put:"/put",
-                delete:"/delete",
-                patch:"/patch"
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import connectDB from './config/database.js';
+import apiRoutes from './routes/index.js';
+import { notFound, errorHandler } from './middleware/error.js';
 
-            }
-        }
-    )
-})
-app.listen(PORT,()=>{
-    console.log(`server is runing on the port http://localhost:${PORT}`)
-})
+// Load environment variables
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
+const app = express();
+
+// Connect to MongoDB
+connectDB();
+
+// Core Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Root health check endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Rama Motor Delivery Backend API',
+    version: '1.0.0',
+    documentation: {
+      auth: '/api/v1/auth',
+      users: '/api/v1/users',
+      devices: '/api/v1/devices',
+      notifications: '/api/v1/notifications',
+    },
+  });
+});
+
+// Mount version 1 API routes
+app.use('/api/v1', apiRoutes);
+
+// Error Handling Middleware
+app.use(notFound);
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`Rama Motor Delivery Server running on http://localhost:${PORT}`);
+});
+
+export default app;
