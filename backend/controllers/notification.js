@@ -1,5 +1,4 @@
 import Notification from '../models/notification.js';
-import NotificationDelivery from '../models/notificationDelivery.js';
 import { createAndSendNotification } from '../services/notification.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
@@ -177,31 +176,10 @@ export async function sendNotificationController(req, res, next) {
   }
 }
 
-/**
- * @desc Get delivery status history for a notification
- * @route GET /api/v1/notifications/:id/deliveries
- * @access Private
- */
-export async function getNotificationDeliveriesController(req, res, next) {
-  try {
-    const deliveries = await NotificationDelivery.find({
-      notificationId: req.params.id,
-    }).sort({ createdAt: 1 });
-
-    return successResponse(res, {
-      statusCode: 200,
-      data: { deliveries },
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
 export default {
   getMyNotificationsController,
   getUnreadCountController,
   markAsReadController,
   markAllAsReadController,
   sendNotificationController,
-  getNotificationDeliveriesController,
 };

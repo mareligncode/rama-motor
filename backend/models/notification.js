@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { auditPlugin } from '../utils/auditPlugin.js';
+import { outboxPlugin } from '../utils/outboxPlugin.js';
 
 const notificationDataSchema = new mongoose.Schema(
   {
@@ -117,6 +119,15 @@ notificationSchema.index({ recipientUserId: 1, createdAt: -1 });
 notificationSchema.index({ recipientUserId: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ deliveryStatus: 1, createdAt: -1 });
 notificationSchema.index({ expiresAt: 1 }, { sparse: true });
+
+// Automated hands-free AuditLog and OutboxEvent plugins
+notificationSchema.plugin(auditPlugin, { entityName: 'Notification' });
+notificationSchema.plugin(outboxPlugin, {
+  aggregateType: 'Notification',
+  autoEvents: [
+    { on: 'create', eventType: 'NOTIFICATION_DISPATCH' },
+  ],
+});
 
 const Notification = mongoose.model('Notification', notificationSchema);
 

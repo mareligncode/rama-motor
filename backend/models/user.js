@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { auditPlugin } from '../utils/auditPlugin.js';
+import { outboxPlugin } from '../utils/outboxPlugin.js';
 
 const nationalIdDetailSchema = new mongoose.Schema(
   {
@@ -99,10 +101,19 @@ const userSchema = new mongoose.Schema(
 );
 
 // Indexes
-userSchema.index({ normalizedPhone: 1 }, { unique: true });
 userSchema.index({ accountStatus: 1 });
 userSchema.index({ roles: 1 });
 userSchema.index({ createdAt: 1 });
+
+// Automated hands-free AuditLog and OutboxEvent plugins
+userSchema.plugin(auditPlugin, { entityName: 'User' });
+userSchema.plugin(outboxPlugin, {
+  aggregateType: 'User',
+  autoEvents: [
+    { on: 'create', eventType: 'USER_CREATED' },
+    { on: 'statusChange', path: 'accountStatus', eventTypePrefix: 'USER_STATUS_' },
+  ],
+});
 
 const User = mongoose.model('User', userSchema);
 
