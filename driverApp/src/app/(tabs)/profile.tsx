@@ -15,6 +15,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useDriverDuty } from "../../hooks/useDriverDuty";
 import { FaydaDriverCard } from "../../components/modules/driver/FaydaDriverCard";
+import { OnlineOfflineToggle } from "../../components/modules/driver/OnlineOfflineToggle";
 import { Badge } from "../../components/common/Badge";
 import { ThemeSelectorModal } from "../../components/common/ThemeSelectorModal";
 import { LanguageSelectorModal } from "../../components/common/LanguageSelectorModal";
@@ -166,12 +167,12 @@ export default function DriverProfileScreen() {
           }}
           className="rounded-2xl p-4 border shadow-sm mb-5 flex-row items-center justify-between"
         >
-          <View className="flex-row items-center">
+          <View className="flex-row items-center flex-1 mr-3">
             <View
-              className={`w-9 h-9 rounded-full items-center justify-center mr-3 ${
+              className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
                 isOnline
-                  ? isDark ? "bg-emerald-950" : "bg-emerald-100"
-                  : isDark ? "bg-slate-800" : "bg-slate-100"
+                  ? isDark ? "bg-emerald-950 border border-emerald-800" : "bg-emerald-100 border border-emerald-200"
+                  : isDark ? "bg-slate-800 border border-slate-700" : "bg-slate-100 border border-slate-200"
               }`}
             >
               <Ionicons
@@ -180,32 +181,41 @@ export default function DriverProfileScreen() {
                 color={isOnline ? "#059669" : "#64748B"}
               />
             </View>
-            <View>
-              <Text style={{ color: colors.textPrimary }} className="text-sm font-bold">
-                {translations.driver.dutyStatus}: {isOnline ? translations.driver.online : translations.driver.offline}
-              </Text>
-              <Text style={{ color: colors.textSecondary }} className="text-xs">
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text style={{ color: colors.textPrimary }} className="text-sm font-bold mr-2">
+                  {translations.driver.dutyStatus}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: isOnline
+                      ? isDark ? "#064E3B" : "#D1FAE5"
+                      : isDark ? "#334155" : "#E2E8F0",
+                  }}
+                  className="px-2 py-0.5 rounded-full"
+                >
+                  <Text
+                    style={{
+                      color: isOnline ? "#059669" : colors.textSecondary,
+                    }}
+                    className="text-[10px] font-black uppercase"
+                  >
+                    {isOnline ? translations.driver.online : translations.driver.offline}
+                  </Text>
+                </View>
+              </View>
+              <Text style={{ color: colors.textSecondary }} className="text-xs mt-0.5" numberOfLines={1}>
                 {isOnline ? "Receiving route delivery dispatches" : "Not receiving new dispatch offers"}
               </Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            onPress={toggleDuty}
-            className={`px-3 py-1.5 rounded-lg ${
-              isOnline
-                ? "bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900"
-                : "bg-emerald-600"
-            }`}
-          >
-            <Text
-              className={`text-xs font-bold ${
-                isOnline ? "text-red-600 dark:text-red-400" : "text-white"
-              }`}
-            >
-              {isOnline ? "Go Offline" : "Go Online"}
-            </Text>
-          </TouchableOpacity>
+          <OnlineOfflineToggle
+            isOnline={isOnline}
+            onToggle={toggleDuty}
+            variant="switch"
+            size="md"
+          />
         </View>
 
         {/* Preferences: Theme & Language */}

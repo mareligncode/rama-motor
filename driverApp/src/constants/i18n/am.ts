@@ -2,7 +2,7 @@ import { TranslationKeys } from './types';
 
 export const am: TranslationKeys = {
   common: {
-    appName: 'Rama Delivery',
+    appName: 'ራማ ዴሊቨሪ',
     cancel: 'ይቅር',
     confirm: 'አረጋግጥ',
     save: 'ለውጦችን መዝግብ',
@@ -71,7 +71,7 @@ export const am: TranslationKeys = {
     andText: ' እና ',
     privacyPolicy: 'የግላዊነት ፖሊሲ',
     termsRequiredError: 'እባክዎ ከመቀጠልዎ በፊት የአገልግሎት ውሉን ይቀበሉ።',
-    sampleTermsLink: 'የውል ናሙና በኦንላይን ይመልከቱ',
+    sampleTermsLink: 'የውል ናሙና በበአገልግሎት ይመልከቱ',
   },
   delivery: {
     homeBadge: 'የ RAMA ማድረሻ መልእክተኛ',
@@ -120,10 +120,10 @@ export const am: TranslationKeys = {
   driver: {
     pilotTitle: 'የአዲስ አበባ መልእክተኛ አሽከርካሪ',
     dutyStatus: 'የስራ ሁኔታ',
-    online: 'ኦንላይን',
-    offline: 'ኦፍላይን',
-    goOnlinePrompt: 'የዕቃ ማድረሻ ጥሪዎችን ለመቀበል ኦንላይን ይግቡ',
-    stayOnlinePrompt: 'አቅራቢያዎ ያሉ የዕቃ ማንሻ ትዕዛዞችን ለመቀበል ኦንላይን ይሁኑ',
+    online: 'በአገልግሎት',
+    offline: 'ያለአገልግሎት',
+    goOnlinePrompt: 'የዕቃ ማድረሻ ጥሪዎችን ለመቀበል በአገልግሎት ይግቡ',
+    stayOnlinePrompt: 'አቅራቢያዎ ያሉ የዕቃ ማንሻ ትዕዛዞችን ለመቀበል በአገልግሎት ይሁኑ',
     todayEarnings: 'የዛሬ ገቢ',
     shiftTrips: 'የተጠናቀቁ ጉዞዎች',
     acceptanceRate: 'የትዕዛዝ መቀበያ ምጣኔ',
@@ -153,7 +153,7 @@ export const am: TranslationKeys = {
     fanLabel: 'የፋይዳ FAN (ባለ 16 አሃዝ ብሔራዊ መታወቂያ ቁጥር)',
     finLabel: 'የፋይዳ FIN (አማራጭ መለያ ቁጥር)',
     verifyNow: 'የፋይዳ ብሔራዊ መታወቂያ አሁን ያረጋግጡ',
-    verificationDesc: 'በአዲስ አበባ ከተማ ትራንስፖርት ደንብ መሰረት አሽከርካሪዎች ከፍተኛ ዋጋ ያላቸውን እሽጎች ከመቀበላቸው በፊት በፋይዳ መታወቂያቸውን ማረጋገጥ አለባቸው።',
+    verificationDesc: 'በአዲስ አበባ ከተማ ትራንስፖርት ደንብ መሰረት ሞተሮች ከፍተኛ ዋጋ ያላቸውን እሽጎች ከመቀበላቸው በፊት በፋይዳ መታወቂያቸውን ማረጋገጥ አለባቸው።',
     sandboxOtpHelper: 'በሙከራ ስርዓት ውስጥ መደበኛው የሙከራ ኦቲፒ 123456 ነው',
     verifyButton: 'ከብሔራዊ መዝገብ ጋር አረጋግጥ',
   },
@@ -186,8 +186,8 @@ export const am: TranslationKeys = {
     faydaTitle: 'የፋይዳ ብሔራዊ መታወቂያ ሁኔታ',
     faydaVerified: 'የተረጋገጠ ዜጋ (eSignet የፀደቀ)',
     faydaUnverified: 'ያልተረጋገጠ መታወቂያ • ለማረጋገጥ ይጫኑ',
-    faydaVerifyNow: 'በፋይዳ መታወቂያ አረጋግጥ',
-    faydaDesc: 'ለተጨማሪ ኢንሹራንስ እና የአስተማማኝነት ማረጋገጫ በኢትዮጵያ ብሔራዊ መታወቂያ ያረጋግጡ',
+    faydaVerifyNow: 'በፋይዳ መታወቂያ ያረጋግጡ',
+    faydaDesc: 'ለደህንነት እና ለትዕዛዝ ማድረሻ ቅድሚያ እና የአስተማማኝነት ማረጋገጫ በኢትዮጵያ ብሔራዊ መታወቂያ ያረጋግጡ',
     activeDevices: 'የተገናኙ ስልኮች እና ክፍለ-ጊዜዎች',
     preferences: 'ምርጫዎች',
     theme: 'የገጽታ ቀለም (Theme)',

@@ -17,6 +17,7 @@ import { useNotifications } from "../../hooks/useNotifications";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 import { FaydaDriverCard } from "../../components/modules/driver/FaydaDriverCard";
+import { OnlineOfflineToggle } from "../../components/modules/driver/OnlineOfflineToggle";
 import { LanguageSelectorModal } from "../../components/common/LanguageSelectorModal";
 import { ThemeSelectorModal } from "../../components/common/ThemeSelectorModal";
 import { ThemeDropdown } from "../../components/common/ThemeDropdown";
@@ -127,8 +128,8 @@ export default function DriverHomeScreen() {
               {user?.fullName ? user.fullName.slice(0, 2).toUpperCase() : "DR"}
             </Text>
             <View
-              className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white ${
-                isOnline ? "bg-[#00A86B]" : "bg-slate-400"
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                isOnline ? "bg-[#10B981]" : "bg-slate-400"
               }`}
             />
           </TouchableOpacity>
@@ -150,7 +151,7 @@ export default function DriverHomeScreen() {
             className="rounded-3xl p-4 border shadow-sm mb-3"
           >
             <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center flex-1">
+              <View className="flex-row items-center flex-1 mr-3">
                 <View
                   style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
                   className="w-11 h-11 rounded-2xl items-center justify-center mr-3"
@@ -170,35 +171,40 @@ export default function DriverHomeScreen() {
                 </View>
               </View>
 
-              {/* Big ONLINE / OFFLINE pill button matching template */}
-              <TouchableOpacity
-                onPress={toggleDuty}
-                activeOpacity={0.8}
-                className={`flex-row items-center px-4 py-2.5 rounded-full shadow-sm ${
-                  isOnline ? "bg-[#00684A]" : "bg-slate-800"
-                }`}
-              >
-                <View
-                  className={`w-2.5 h-2.5 rounded-full mr-2 ${
-                    isOnline ? "bg-[#34D399]" : "bg-slate-400"
-                  }`}
-                />
-                <Text className="text-xs font-black text-white uppercase tracking-wider">
-                  {isOnline ? translations.driver.online : translations.driver.offline}
-                </Text>
-              </TouchableOpacity>
+              {/* Animated ONLINE / OFFLINE Pill Toggle */}
+              <OnlineOfflineToggle
+                isOnline={isOnline}
+                onToggle={toggleDuty}
+                variant="pill"
+                size="md"
+              />
             </View>
           </View>
 
           {/* Status Pills under card */}
           <View className="flex-row items-center justify-between mb-4">
             <View
-              style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
-              className="flex-row items-center px-3 py-1.5 rounded-full flex-1 mr-2"
+              style={{
+                backgroundColor: isOnline
+                  ? isDark ? '#0E3A2B' : '#E6F4EE'
+                  : isDark ? '#1E293B' : '#F1F5F9',
+                borderColor: isOnline
+                  ? isDark ? '#059669' : '#A7F3D0'
+                  : isDark ? '#334155' : '#CBD5E1',
+              }}
+              className="flex-row items-center px-3 py-1.5 rounded-full flex-1 mr-2 border"
             >
-              <View className="w-2 h-2 rounded-full bg-[#00684A] mr-2" />
+              <View
+                className={`w-2 h-2 rounded-full mr-2 ${
+                  isOnline ? "bg-[#00684A]" : "bg-slate-400"
+                }`}
+              />
               <Text
-                style={{ color: isDark ? '#4ADE80' : '#00684A' }}
+                style={{
+                  color: isOnline
+                    ? isDark ? '#4ADE80' : '#00684A'
+                    : colors.textSecondary,
+                }}
                 className="text-xs font-bold"
                 numberOfLines={1}
               >
@@ -213,9 +219,18 @@ export default function DriverHomeScreen() {
               }}
               className="flex-row items-center border px-3 py-1.5 rounded-full"
             >
-              <Ionicons name="navigate" size={12} color="#00684A" />
-              <Text style={{ color: colors.textPrimary }} className="text-xs font-bold ml-1">
-                GPS ±3m • 4G+
+              <Ionicons
+                name={isOnline ? "navigate" : "pause-circle-outline"}
+                size={12}
+                color={isOnline ? "#00684A" : colors.textSecondary}
+              />
+              <Text
+                style={{
+                  color: isOnline ? colors.textPrimary : colors.textSecondary,
+                }}
+                className="text-xs font-bold ml-1"
+              >
+                {isOnline ? "GPS ±3m • 4G+" : "GPS Standby"}
               </Text>
             </View>
           </View>
@@ -225,6 +240,42 @@ export default function DriverHomeScreen() {
             style={{ borderColor: colors.border }}
             className="h-60 bg-emerald-950/15 rounded-3xl overflow-hidden relative border mb-4 justify-between p-3.5"
           >
+            {/* Offline standby overlay on map canvas */}
+            {!isOnline && (
+              <View
+                style={{ backgroundColor: isDark ? 'rgba(15, 23, 42, 0.88)' : 'rgba(248, 250, 252, 0.92)' }}
+                className="absolute inset-0 z-10 items-center justify-center p-4 rounded-3xl"
+              >
+                <View
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  }}
+                  className="rounded-2xl p-4 items-center border shadow-md max-w-[270px] w-full"
+                >
+                  <View className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center mb-2.5">
+                    <Ionicons name="moon" size={22} color="#64748B" />
+                  </View>
+                  <Text style={{ color: colors.textPrimary }} className="text-sm font-black text-center mb-1">
+                    {translations.driver.shiftPaused || "Shift Paused"}
+                  </Text>
+                  <Text style={{ color: colors.textSecondary }} className="text-xs text-center mb-3.5 leading-relaxed">
+                    {translations.driver.goOnlinePrompt}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={toggleDuty}
+                    activeOpacity={0.85}
+                    className="bg-[#00684A] px-5 py-2.5 rounded-full flex-row items-center shadow-md"
+                  >
+                    <Ionicons name="flash" size={14} color="#FFFFFF" />
+                    <Text className="text-white text-xs font-black uppercase tracking-wider ml-1.5">
+                      {translations.driver.online}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
             <View className="space-y-1">
               <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 BOLE RD (AFRICA AVE) • CAMEROON ST

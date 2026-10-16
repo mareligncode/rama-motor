@@ -120,8 +120,8 @@ export const or: TranslationKeys = {
   driver: {
     pilotTitle: 'KONKOLAACHISAA FINFINNEE',
     dutyStatus: 'Haala Hojii',
-    online: 'TOORA IRRA (ONLINE)',
-    offline: 'TOORA ALAA (OFFLINE)',
+    online: 'TOORA IRRA',
+    offline: 'TOORA ALAA',
     goOnlinePrompt: "Ajaja fe'iinsaa fudhachuuf toora irra seenaa",
     stayOnlinePrompt: 'Ajaja meeshaa dhiyoo jiru fudhachuuf toora irra turaa',
     todayEarnings: "Galii Har'aa",
