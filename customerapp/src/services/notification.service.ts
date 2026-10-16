@@ -1,6 +1,6 @@
 import { apiClient } from './api.client';
 import { API_ENDPOINTS } from '../constants/api';
-import { Notification, NotificationDelivery } from '../types/notification.types';
+import { Notification } from '../types/notification.types';
 import { ApiResponse } from '../types/api.types';
 
 export const notificationService = {
@@ -41,16 +41,5 @@ export const notificationService = {
    */
   async markAllAsRead(): Promise<ApiResponse<null>> {
     return apiClient.patch<null>(API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ);
-  },
-
-  /**
-   * Get delivery status history for a notification
-   */
-  async getNotificationDeliveries(
-    id: string
-  ): Promise<ApiResponse<{ deliveries: NotificationDelivery[] }>> {
-    return apiClient.get<{ deliveries: NotificationDelivery[] }>(
-      API_ENDPOINTS.NOTIFICATIONS.DELIVERIES(id)
-    );
   },
 };

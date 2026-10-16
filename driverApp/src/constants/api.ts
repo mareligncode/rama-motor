@@ -34,7 +34,6 @@ export const API_ENDPOINTS = {
     UNREAD_COUNT: '/notifications/unread-count',
     MARK_READ: (id: string) => `/notifications/${id}/read`,
     MARK_ALL_READ: '/notifications/read-all',
-    DELIVERIES: (id: string) => `/notifications/${id}/deliveries`,
   },
 };
 
