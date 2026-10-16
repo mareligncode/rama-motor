@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -62,13 +63,22 @@ export default function DriverNotificationsScreen() {
         }}
         className="px-5 py-3.5 border-b flex-row items-center justify-between"
       >
-        <View>
-          <Text style={{ color: colors.textPrimary }} className="text-xl font-extrabold">
-            {translations.notifications.title}
-          </Text>
-          <Text style={{ color: colors.textSecondary }} className="text-xs">
-            {unreadCount > 0 ? `${unreadCount} ${translations.notifications.unreadCountSuffix}` : translations.notifications.allCaughtUp}
-          </Text>
+        <View className="flex-row items-center flex-1 mr-2 min-w-0">
+          <View className="w-10 h-10 rounded-full overflow-hidden mr-2.5 shadow-sm shrink-0 bg-[#00684A]">
+            <Image
+              source={require("../../assets/images/image.png")}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
+          <View className="flex-1 min-w-0">
+            <Text style={{ color: colors.textPrimary }} className="text-xl font-extrabold" numberOfLines={1}>
+              {translations.notifications.title}
+            </Text>
+            <Text style={{ color: colors.textSecondary }} className="text-xs" numberOfLines={1}>
+              {unreadCount > 0 ? `${unreadCount} ${translations.notifications.unreadCountSuffix}` : translations.notifications.allCaughtUp}
+            </Text>
+          </View>
         </View>
 
         {unreadCount > 0 ? (

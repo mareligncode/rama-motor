@@ -65,25 +65,28 @@ export const ThemeDropdown: React.FC<ThemeDropdownProps> = ({ compact = false })
           backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
           borderColor: isDark ? '#00A86B' : '#00684A',
         }}
-        className={`flex-row items-center border rounded-full ${
-          compact ? 'px-2.5 py-1' : 'px-3 py-1.5'
+        className={`flex-row items-center border rounded-full shrink-0 ${
+          compact ? 'px-2 py-1' : 'px-3 py-1.5'
         }`}
       >
         <Ionicons
           name={isDark ? 'moon' : 'sunny'}
-          size={14}
+          size={compact ? 13 : 14}
           color={isDark ? '#4ADE80' : '#00684A'}
-          style={{ marginRight: 4 }}
+          style={{ marginRight: 3 }}
         />
         <Text
           style={{ color: isDark ? '#4ADE80' : '#00684A' }}
           className="text-xs font-bold capitalize mr-1"
+          numberOfLines={1}
         >
-          {themeMode === 'system' ? `Auto (${isDark ? 'Dark' : 'Light'})` : themeMode}
+          {compact
+            ? (themeMode === 'system' ? 'Auto' : themeMode)
+            : (themeMode === 'system' ? `Auto (${isDark ? 'Dark' : 'Light'})` : themeMode)}
         </Text>
         <Ionicons
           name={dropdownOpen ? 'chevron-up' : 'chevron-down'}
-          size={12}
+          size={10}
           color={isDark ? '#4ADE80' : '#00684A'}
         />
       </TouchableOpacity>

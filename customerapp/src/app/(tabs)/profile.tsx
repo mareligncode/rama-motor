@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -64,29 +65,42 @@ export default function ProfileScreen() {
         }}
         className="px-5 py-3.5 border-b flex-row items-center justify-between"
       >
-        <Text style={{ color: colors.textPrimary }} className="text-xl font-extrabold">
-          {translations.profile.title}
-        </Text>
+        <View className="flex-row items-center flex-1 mr-2 min-w-0">
+          <View className="w-10 h-10 rounded-full overflow-hidden mr-2.5 shadow-sm shrink-0 bg-[#00684A]">
+            <Image
+              source={require("../../assets/images/image.png")}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
+          <Text style={{ color: colors.textPrimary }} className="text-xl font-extrabold" numberOfLines={1}>
+            {translations.profile.title}
+          </Text>
+        </View>
 
         {/* Quick Switchers in Header */}
-        <View className="flex-row items-center space-x-2">
-          <View className="mr-2">
-            <ThemeDropdown compact />
-          </View>
+        <View className="flex-row items-center space-x-1.5 shrink-0">
+          <ThemeDropdown compact />
 
           <TouchableOpacity
             onPress={() => setLanguageModalVisible(true)}
             style={{ backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE' }}
-            className="flex-row items-center px-2.5 py-1 rounded-full"
+            className="flex-row items-center px-2 py-1 rounded-full"
+            activeOpacity={0.8}
           >
             <Text className="text-xs mr-1">{currentLangObj.flag}</Text>
             <Text
               style={{ color: isDark ? '#4ADE80' : '#00684A' }}
               className="text-xs font-bold"
+              numberOfLines={1}
             >
-              {currentLangObj.nativeName}
+              {currentLangObj.code.toUpperCase()}
             </Text>
           </TouchableOpacity>
+
+          <View className="w-9 h-9 rounded-full bg-[#00684A] items-center justify-center shadow-sm">
+            <Ionicons name="shield-checkmark" size={16} color="#FFFFFF" />
+          </View>
         </View>
       </View>
 

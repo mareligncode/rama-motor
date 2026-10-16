@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -117,28 +118,33 @@ export default function CustomerVerifyOtpScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={{ backgroundColor: colors.surfaceVariant }}
-            className="w-9 h-9 rounded-full items-center justify-center mr-2"
+            className="w-9 h-9 rounded-full items-center justify-center mr-2 shrink-0"
+            activeOpacity={0.8}
           >
             <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
 
-          <View className="flex-row items-center flex-1 ml-1">
-            <View className="w-8 h-8 rounded-full bg-[#00684A] items-center justify-center mr-2">
-              <Ionicons name="bicycle" size={16} color="#FFFFFF" />
+          <View className="flex-row items-center flex-1 mr-2 min-w-0">
+            <View className="w-8 h-8 rounded-full overflow-hidden mr-2 shadow-sm shrink-0 bg-[#00684A]">
+              <Image
+                source={require("../../assets/images/image.png")}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
             </View>
-            <View>
-              <Text style={{ color: colors.textPrimary }} className="text-sm font-black">
+            <View className="flex-1 min-w-0">
+              <Text style={{ color: colors.textPrimary }} className="text-sm font-black leading-tight" numberOfLines={1}>
                 Rama Delivery
               </Text>
-              <Text className="text-[9px] font-bold text-[#00684A] uppercase">DELIVERY</Text>
+              <Text className="text-[9px] font-bold text-[#00684A] uppercase" numberOfLines={1}>
+                DELIVERY
+              </Text>
             </View>
           </View>
 
-          <View className="flex-row items-center space-x-2">
+          <View className="flex-row items-center space-x-1.5 shrink-0">
             {/* Theme Changer Dropdown */}
-            <View className="mr-1.5">
-              <ThemeDropdown compact />
-            </View>
+            <ThemeDropdown compact />
 
             <TouchableOpacity
               onPress={() => setLangModalVisible(true)}
@@ -146,18 +152,21 @@ export default function CustomerVerifyOtpScreen() {
                 backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
                 borderColor: isDark ? '#00A86B' : '#00684A',
               }}
-              className="flex-row items-center px-2.5 py-1 rounded-full border mr-2"
+              className="flex-row items-center px-2 py-1 rounded-full border"
+              activeOpacity={0.8}
             >
               <Text className="text-xs mr-1">{currentLangObj.flag}</Text>
               <Text
                 style={{ color: isDark ? '#4ADE80' : '#00684A' }}
                 className="text-xs font-bold"
+                numberOfLines={1}
               >
-                {currentLangObj.nativeName}
+                {currentLangObj.code.toUpperCase()}
               </Text>
             </TouchableOpacity>
-            <View className="w-8 h-8 rounded-full bg-[#00684A] items-center justify-center">
-              <Ionicons name="person" size={16} color="#FFFFFF" />
+
+            <View className="w-8 h-8 rounded-full bg-[#00684A] items-center justify-center shadow-sm">
+              <Ionicons name="shield-checkmark" size={14} color="#FFFFFF" />
             </View>
           </View>
         </View>

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator, Text, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../hooks/useAuth";
@@ -20,8 +20,12 @@ export default function Index() {
 
   return (
     <View className="flex-1 items-center justify-center bg-[#F8FAF9] px-6">
-      <View className="w-16 h-16 rounded-2xl bg-[#00684A] items-center justify-center mb-5 shadow-lg shadow-[#00684A]/30">
-        <Ionicons name="bicycle" size={32} color="#FFFFFF" />
+      <View className="w-16 h-16 rounded-2xl overflow-hidden mb-5 shadow-lg shadow-[#00684A]/30 bg-[#00684A]">
+        <Image
+          source={require("../assets/images/image.png")}
+          className="w-full h-full"
+          resizeMode="cover"
+        />
       </View>
       <Text className="text-2xl font-black text-[#111827] text-center tracking-tight">
         Rama Delivery

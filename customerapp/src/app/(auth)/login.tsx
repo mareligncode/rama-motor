@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -101,25 +102,34 @@ export default function CustomerLoginScreen() {
           }}
           className="flex-row items-center justify-between px-5 py-3 border-b"
         >
-          <View className="flex-row items-center space-x-2">
-            <View className="w-10 h-10 rounded-full bg-[#00684A] items-center justify-center mr-2">
-              <Ionicons name="bicycle" size={20} color="#FFFFFF" />
+          <View className="flex-row items-center flex-1 mr-2 min-w-0">
+            <View className="w-10 h-10 rounded-full overflow-hidden mr-2.5 shadow-sm shrink-0 bg-[#00684A]">
+              <Image
+                source={require("../../assets/images/image.png")}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
             </View>
-            <View>
-              <Text style={{ color: colors.textPrimary }} className="text-base font-black">
+            <View className="flex-1 min-w-0">
+              <Text
+                style={{ color: colors.textPrimary }}
+                className="text-base font-black leading-tight"
+                numberOfLines={1}
+              >
                 Rama Delivery
               </Text>
-              <Text className="text-[10px] font-bold text-[#00684A] tracking-wider uppercase">
+              <Text
+                className="text-[10px] font-bold text-[#00684A] tracking-wider uppercase"
+                numberOfLines={1}
+              >
                 ITEM DELIVERY
               </Text>
             </View>
           </View>
 
-          <View className="flex-row items-center space-x-2">
+          <View className="flex-row items-center space-x-1.5 shrink-0">
             {/* Theme Changer Dropdown */}
-            <View className="mr-2">
-              <ThemeDropdown compact />
-            </View>
+            <ThemeDropdown compact />
 
             {/* Language Switcher Pill */}
             <TouchableOpacity
@@ -128,25 +138,27 @@ export default function CustomerLoginScreen() {
                 backgroundColor: isDark ? '#0E3A2B' : '#E6F4EE',
                 borderColor: isDark ? '#00A86B' : '#00684A',
               }}
-              className="flex-row items-center px-3 py-1.5 rounded-full border mr-2"
+              className="flex-row items-center px-2 py-1 rounded-full border"
+              activeOpacity={0.8}
             >
               <Text className="text-xs mr-1">{currentLangObj.flag}</Text>
               <Text
                 style={{ color: isDark ? '#4ADE80' : '#00684A' }}
                 className="text-xs font-bold"
+                numberOfLines={1}
               >
-                {currentLangObj.nativeName}
+                {currentLangObj.code.toUpperCase()}
               </Text>
               <Ionicons
                 name="chevron-down"
-                size={12}
+                size={10}
                 color={isDark ? "#4ADE80" : "#00684A"}
-                style={{ marginLeft: 3 }}
+                style={{ marginLeft: 2 }}
               />
             </TouchableOpacity>
 
-            <View className="w-9 h-9 rounded-full bg-[#00684A] items-center justify-center">
-              <Ionicons name="person" size={18} color="#FFFFFF" />
+            <View className="w-9 h-9 rounded-full bg-[#00684A] items-center justify-center shadow-sm">
+              <Ionicons name="shield-checkmark" size={16} color="#FFFFFF" />
             </View>
           </View>
         </View>
