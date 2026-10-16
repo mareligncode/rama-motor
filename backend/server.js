@@ -4,6 +4,8 @@ import cors from 'cors';
 import connectDB from './config/database.js';
 import apiRoutes from './routes/index.js';
 import { notFound, errorHandler } from './middleware/error.js';
+import { auditContextMiddleware } from './middleware/auditContext.js';
+import { startOutboxWorker } from './services/outboxWorker.js';
 
 // Load environment variables
 dotenv.config();
@@ -11,13 +13,16 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB and start background outbox worker
+connectDB().then(() => {
+  startOutboxWorker({ pollIntervalMs: 2000 });
+});
 
 // Core Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(auditContextMiddleware);
 
 // Root health check endpoint
 app.get('/', (req, res) => {
