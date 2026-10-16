@@ -42,6 +42,8 @@ export async function dispatchOutboxEvent(outboxEvent) {
   }
 }
 
+import { executeNotificationDelivery } from './notification.js';
+
 // Built-in standard handlers
 registerEventHandler('USER_CREATED', async (payload, event) => {
   console.log(
@@ -53,6 +55,13 @@ registerEventHandler('USER_STATUS_SUSPENDED', async (payload, event) => {
   console.warn(
     `[OutboxDispatcher] User ${event.aggregateId} account suspended. Triggering device revocation checks.`
   );
+});
+
+registerEventHandler('NOTIFICATION_DISPATCH', async (payload, event) => {
+  const notificationId = event.aggregateId || payload.id || payload.notificationId;
+  if (notificationId) {
+    await executeNotificationDelivery(notificationId);
+  }
 });
 
 export default {
