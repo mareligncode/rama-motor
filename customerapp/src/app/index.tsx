@@ -20,7 +20,7 @@ export default function Index() {
 
   return (
     <View className="flex-1 items-center justify-center bg-[#F8FAF9] px-6">
-      <View className="w-16 h-16 rounded-2xl overflow-hidden mb-5 shadow-lg shadow-[#00684A]/30 bg-[#00684A]">
+      <View className="w-24 h-24 rounded-3xl overflow-hidden mb-5 shadow-xl shadow-[#035E33]/30 bg-[#035E33]">
         <Image
           source={require("../assets/images/image.png")}
           className="w-full h-full"
