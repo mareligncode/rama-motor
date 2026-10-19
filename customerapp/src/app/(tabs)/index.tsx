@@ -27,12 +27,11 @@ export default function CustomerHomeScreen() {
   const { unreadCount, refreshNotifications } = useNotifications();
   const { colors, isDark } = useTheme();
   const { translations, language, supportedLanguages } = useTranslation();
-
   const [refreshing, setRefreshing] = useState(false);
-  const [pickupSpot, setPickupSpot] = useState("Bole Medhanialem (Gate 2)");
-  const [dropoffSpot, setDropoffSpot] = useState("Kazanchis • UNECA Compound");
-  const [recipientPhone, setRecipientPhone] = useState("0923456789");
-  const [recipientName, setRecipientName] = useState("Yonas G.");
+  const [pickupSpot, setPickupSpot] = useState("Bole Medhanialem");
+  const [dropoffSpot, setDropoffSpot] = useState("Kazanchis");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [recipientName, setRecipientName] = useState("");
   const [selectedFleet, setSelectedFleet] = useState<"electric" | "standard" | "cargo">("electric");
   const [selectedPayment, setSelectedPayment] = useState<"cash" | "telebirr" | "cbe">("telebirr");
   const [langModalVisible, setLangModalVisible] = useState(false);
@@ -47,6 +46,14 @@ export default function CustomerHomeScreen() {
   };
 
   const handleBookDelivery = () => {
+    if (!recipientName.trim() || !recipientPhone.trim()) {
+      Alert.alert(
+        translations.common.error || "Missing Information",
+        "Please enter recipient name and phone number before booking."
+      );
+      return;
+    }
+
     Alert.alert(
       translations.delivery.requestCourier,
       `Dispatch motorcycle courier from ${pickupSpot} to ${dropoffSpot} for recipient ${recipientName} (${recipientPhone})?\n\nEstimated Fee: ${
@@ -58,8 +65,8 @@ export default function CustomerHomeScreen() {
           text: translations.common.confirm,
           onPress: () => {
             Alert.alert(
-              "Courier Dispatched! 🏍",
-              `Dodai EV Courier Dawit H. has accepted your parcel delivery. ${translations.delivery.securityOtp}: 4819.`
+              "Order Request Submitted",
+              `Your delivery request has been registered. Looking for available nearby couriers.`
             );
           },
         },
@@ -234,20 +241,9 @@ export default function CustomerHomeScreen() {
             </View>
 
             {/* Central Pickup Marker */}
-            <View className="absolute top-16 left-28 bg-[#111827] px-3 py-1.5 rounded-full flex-row items-center shadow-lg">
-              <View className="w-2 h-2 rounded-full bg-[#00A86B] mr-2" />
-              <Text className="text-xs font-bold text-white">Pickup here • 2 min</Text>
-            </View>
-
-            {/* Nearby Motorcycle Courier Badges */}
-            <View className="absolute top-28 right-12 bg-[#00684A] px-2.5 py-1 rounded-full flex-row items-center shadow">
-              <Ionicons name="bicycle" size={14} color="#FFFFFF" />
-              <Text className="text-[11px] font-bold text-white ml-1">3 min</Text>
-            </View>
-
-            <View className="absolute bottom-12 left-16 bg-[#111827] px-2.5 py-1 rounded-full flex-row items-center shadow">
-              <Ionicons name="bicycle" size={14} color="#FFFFFF" />
-              <Text className="text-[11px] font-bold text-white ml-1">4 min</Text>
+            <View className="absolute top-20 left-24 bg-[#111827] px-3.5 py-2 rounded-full flex-row items-center shadow-lg border border-emerald-600/40">
+              <View className="w-2.5 h-2.5 rounded-full bg-[#00A86B] mr-2" />
+              <Text className="text-xs font-bold text-white">📍 {pickupSpot}</Text>
             </View>
 
             {/* Floating Map Controls on Right */}

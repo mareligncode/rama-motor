@@ -166,7 +166,7 @@ export default function DriverHomeScreen() {
                     ETB {todayEarnings.toLocaleString()}
                   </Text>
                   <Text style={{ color: isDark ? '#4ADE80' : '#00684A' }} className="text-[11px] font-bold">
-                    ↗ +18% • {todayDeliveries} {translations.driver.shiftTrips}
+                    {todayDeliveries > 0 ? `${todayDeliveries} ${translations.driver.shiftTrips}` : translations.driver.activeShift}
                   </Text>
                 </View>
               </View>
@@ -382,10 +382,10 @@ export default function DriverHomeScreen() {
                   <Ionicons name="checkmark-circle" size={14} color="#00684A" />
                 </View>
                 <Text style={{ color: colors.textPrimary }} className="text-base font-black">
-                  8 Trips
+                  {todayDeliveries} {translations.driver.shiftTrips}
                 </Text>
                 <Text style={{ color: isDark ? '#4ADE80' : '#00684A' }} className="text-[10px] font-semibold mt-0.5">
-                  4 left (+250)
+                  {isOnline ? "Active" : "Standby"}
                 </Text>
               </View>
 
@@ -404,7 +404,7 @@ export default function DriverHomeScreen() {
                   <Ionicons name="time-outline" size={14} color="#00684A" />
                 </View>
                 <Text style={{ color: colors.textPrimary }} className="text-base font-black">
-                  4h 15m
+                  {isOnline ? "On Duty" : "Offline"}
                 </Text>
                 <Text style={{ color: colors.textSecondary }} className="text-[10px] font-semibold mt-0.5">
                   {translations.driver.activeShift}
@@ -426,10 +426,10 @@ export default function DriverHomeScreen() {
                   <Ionicons name="shield-checkmark" size={14} color="#00684A" />
                 </View>
                 <Text style={{ color: colors.textPrimary }} className="text-base font-black">
-                  96%
+                  {todayDeliveries > 0 ? "100%" : "--"}
                 </Text>
-                <Text className="text-[10px] text-amber-500 font-bold mt-0.5">
-                  {translations.driver.goldPilot}
+                <Text className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                  {isOnline ? "Available" : "Offline"}
                 </Text>
               </View>
             </View>

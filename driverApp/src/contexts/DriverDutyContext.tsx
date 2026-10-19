@@ -19,10 +19,10 @@ export const DriverDutyContext = createContext<DriverDutyContextType | undefined
 export const DriverDutyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOnline, setIsOnline] = useState<boolean>(false);
   const [dutyStatus, setDutyStatus] = useState<DeliveryDutyStatus>('offline');
-  const [priorityScore] = useState<number>(95);
-  const [priorityLevel] = useState<PriorityLevel>('high');
-  const [todayDeliveries] = useState<number>(8);
-  const [todayEarnings] = useState<number>(1450);
+  const [priorityScore, setPriorityScore] = useState<number>(0);
+  const [priorityLevel, setPriorityLevel] = useState<PriorityLevel>('normal');
+  const [todayDeliveries, setTodayDeliveries] = useState<number>(0);
+  const [todayEarnings, setTodayEarnings] = useState<number>(0);
 
   useEffect(() => {
     const restoreDuty = async () => {
