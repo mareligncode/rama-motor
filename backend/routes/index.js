@@ -3,6 +3,8 @@ import authRoutes from './auth.js';
 import userRoutes from './user.js';
 import deviceRoutes from './device.js';
 import notificationRoutes from './notification.js';
+import roleRoutes from './role.js';
+import staffRoutes from './staff.js';
 
 const router = express.Router();
 
@@ -10,5 +12,7 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/devices', deviceRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/roles', roleRoutes);
+router.use('/staffs', staffRoutes);
 
 export default router;

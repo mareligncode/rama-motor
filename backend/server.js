@@ -6,6 +6,7 @@ import apiRoutes from './routes/index.js';
 import { notFound, errorHandler } from './middleware/error.js';
 import { auditContextMiddleware } from './middleware/auditContext.js';
 import { startOutboxWorker } from './services/outboxWorker.js';
+import { seedRoles } from './utils/seedRoles.js';
 
 // Load environment variables
 dotenv.config();
@@ -14,7 +15,8 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 // Connect to MongoDB and start background outbox worker
-connectDB().then(() => {
+connectDB().then(async () => {
+  await seedRoles();
   startOutboxWorker({ pollIntervalMs: 2000 });
 });
 
@@ -35,10 +37,21 @@ app.get('/', (req, res) => {
       users: '/api/v1/users',
       devices: '/api/v1/devices',
       notifications: '/api/v1/notifications',
+      roles: '/api/v1/roles',
+      staffs: '/api/v1/staffs',
     },
   });
 });
-
+app.get('/rama',(req,res)=>{
+  res.json({
+    message:"this is rama software",
+    endpoint:{
+      message:'/rama',
+      status:'live',
+      version:'1.0.0'
+    }
+  })
+})
 // Mount version 1 API routes
 app.use('/api/v1', apiRoutes);
 
