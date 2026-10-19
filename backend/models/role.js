@@ -36,7 +36,6 @@ const roleSchema = new mongoose.Schema(
 );
 
 // Indexes
-roleSchema.index({ name: 1 }, { unique: true });
 roleSchema.index({ status: 1 });
 roleSchema.index({ createdAt: 1 });
 

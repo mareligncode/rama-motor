@@ -39,7 +39,8 @@ export function App() {
 
   // Health check
   useEffect(() => {
-    fetch('http://localhost:3000/')
+    const apiHost = (import.meta.env.VITE_API_URL || 'http://localhost:7000/api/v1').replace(/\/api\/v1\/?$/, '');
+    fetch(`${apiHost}/`)
       .then((res) => res.json())
       .then((data) => {
         if (data?.status === 'online') {
