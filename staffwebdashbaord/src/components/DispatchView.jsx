@@ -1,7 +1,12 @@
 import React from 'react';
-import { MapPin, Radio, Compass, AlertCircle } from 'lucide-react';
+import { MapPin, Radio, Compass, AlertCircle, ShieldCheck, Shield } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export function DispatchView() {
+  const { hasPermission, roleName, isSuperAdmin } = useAuth();
+  const canDispatch = hasPermission('deliveries:dispatch');
+  const canReadDeliveries = hasPermission('deliveries:read');
+
   return (
     <div className="panel-card">
       <div className="panel-header">
@@ -11,9 +16,29 @@ export function DispatchView() {
             Phase 8: High-frequency GPS tracking and dispatch controls (Collection 18: delivery_tracking)
           </p>
         </div>
-        <div className="connection-indicator">
-          <span className="dot-live" style={{ background: '#f59e0b', boxShadow: '0 0 8px #f59e0b' }} />
-          <span>Awaiting Phase 8 Fleet Stream</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="connection-indicator">
+            <span className="dot-live" style={{ background: '#f59e0b', boxShadow: '0 0 8px #f59e0b' }} />
+            <span>Awaiting Phase 8 Fleet Stream</span>
+          </div>
+
+          <span
+            style={{
+              fontSize: '0.75rem',
+              padding: '0.2rem 0.6rem',
+              borderRadius: '9999px',
+              background: canDispatch ? '#E6F4EE' : 'var(--bg-tertiary)',
+              color: canDispatch ? '#00684A' : 'var(--text-muted)',
+              fontWeight: 600,
+              border: `1px solid ${canDispatch ? '#CCE9DC' : 'var(--border-subtle)'}`,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+            }}
+          >
+            {canDispatch ? <ShieldCheck size={12} /> : <Shield size={12} />}
+            {canDispatch ? 'Active Dispatch Clearance' : 'Observer Clearance'}
+          </span>
         </div>
       </div>
 

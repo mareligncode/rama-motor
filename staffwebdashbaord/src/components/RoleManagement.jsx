@@ -11,10 +11,26 @@ import {
   KeyRound,
   X,
   AlertTriangle,
+  Lock,
+  Shield,
 } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export function RoleManagement({ showToast }) {
+  const { hasPermission, roleName, isSuperAdmin, isAuthenticated } = useAuth();
+  const canWrite = hasPermission('roles:write');
+  const canDelete = hasPermission('roles:delete');
+
+  const SYSTEM_PROTECTED_ROLES = [
+    'Super Admin',
+    'Operations Manager',
+    'Dispatcher',
+    'Customer Support',
+    'Finance Officer',
+    'Compliance & Auditor',
+  ];
+
   const [roles, setRoles] = useState([]);
   const [permissionsCatalog, setPermissionsCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +52,11 @@ export function RoleManagement({ showToast }) {
   });
 
   const loadData = async () => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const [rolesRes, permsRes] = await Promise.all([
@@ -58,9 +79,13 @@ export function RoleManagement({ showToast }) {
 
   useEffect(() => {
     loadData();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, isAuthenticated]);
 
   const handleOpenCreateModal = () => {
+    if (!canWrite) {
+      showToast('Permission denied: requires roles:write permission', 'error');
+      return;
+    }
     setEditingRole(null);
     setFormData({
       name: '',
@@ -72,6 +97,10 @@ export function RoleManagement({ showToast }) {
   };
 
   const handleOpenEditModal = (role) => {
+    if (!canWrite) {
+      showToast('Permission denied: requires roles:write permission', 'error');
+      return;
+    }
     setEditingRole(role);
     setFormData({
       name: role.name,
@@ -110,6 +139,10 @@ export function RoleManagement({ showToast }) {
 
   const handleSubmitRole = async (e) => {
     e.preventDefault();
+    if (!canWrite) {
+      showToast('Action forbidden: requires roles:write permission', 'error');
+      return;
+    }
     if (!formData.name.trim()) {
       showToast('Please enter a role name', 'error');
       return;
@@ -135,6 +168,16 @@ export function RoleManagement({ showToast }) {
 
   const handleDeleteRole = async () => {
     if (!deleteCandidate) return;
+    if (!canDelete) {
+      showToast('Action forbidden: requires roles:delete permission', 'error');
+      return;
+    }
+    if (SYSTEM_PROTECTED_ROLES.includes(deleteCandidate.name)) {
+      showToast(`Cannot delete system-protected role '${deleteCandidate.name}'`, 'error');
+      setDeleteCandidate(null);
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.deleteRole(deleteCandidate._id);
@@ -241,12 +284,47 @@ export function RoleManagement({ showToast }) {
               <option value="inactive">Inactive Only</option>
             </select>
 
-            <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-              <Plus size={16} />
-              <span>Create New Role</span>
-            </button>
+            {canWrite ? (
+              <button className="btn btn-primary" onClick={handleOpenCreateModal}>
+                <Plus size={16} />
+                <span>Create New Role</span>
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary"
+                disabled
+                style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--bg-tertiary)', color: 'var(--text-dim)', border: '1px solid var(--border-subtle)' }}
+                title="Requires roles:write permission"
+              >
+                <Lock size={14} />
+                <span>Create Role (Restricted)</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Read-Only RBAC Notice Banner */}
+        {!canWrite && (
+          <div
+            style={{
+              margin: '0.5rem 1.5rem 1rem',
+              background: 'rgba(245, 158, 11, 0.08)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.65rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              color: '#d97706',
+              fontSize: '0.82rem',
+            }}
+          >
+            <Shield size={16} />
+            <span>
+              <strong>Read-Only Mode:</strong> Your role ({roleName || 'Staff'}) has viewing clearance. Role definition, permission matrix edits, and role creation require the <code>roles:write</code> permission.
+            </span>
+          </div>
+        )}
 
         {/* Roles Table */}
         <div className="table-container">
@@ -279,68 +357,112 @@ export function RoleManagement({ showToast }) {
                       <div className="empty-desc">
                         No roles match your search filters or the roles collection is empty.
                       </div>
-                      <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-                        <Plus size={16} /> Create Standard Role
-                      </button>
+                      {canWrite && (
+                        <button className="btn btn-primary" onClick={handleOpenCreateModal}>
+                          <Plus size={16} /> Create Standard Role
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ) : (
-                roles.map((role) => (
-                  <tr key={role._id}>
-                    <td>
-                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{role.name}</div>
-                    </td>
-                    <td>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                        {role.description || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge badge-${role.status}`}>{role.status}</span>
-                    </td>
-                    <td>
-                      <span className="code-tag">{role.staffCount || 0} members</span>
-                    </td>
-                    <td>
-                      <div className="perm-pill-container">
-                        {(role.permissions || []).slice(0, 5).map((perm) => (
-                          <span key={perm} className="perm-pill">
-                            {perm}
-                          </span>
-                        ))}
-                        {(role.permissions || []).length > 5 && (
-                          <span className="perm-pill" style={{ color: 'var(--primary)' }}>
-                            +{(role.permissions || []).length - 5} more
-                          </span>
-                        )}
-                        {(role.permissions || []).length === 0 && (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                            No permissions assigned
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
-                        <button
-                          className="btn-icon"
-                          title="Edit Role"
-                          onClick={() => handleOpenEditModal(role)}
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="btn-icon btn-icon-danger"
-                          title="Delete Role"
-                          onClick={() => setDeleteCandidate(role)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                roles.map((role) => {
+                  const isProtected = SYSTEM_PROTECTED_ROLES.includes(role.name);
+                  return (
+                    <tr key={role._id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{role.name}</span>
+                          {isProtected && (
+                            <span
+                              style={{
+                                fontSize: '0.62rem',
+                                padding: '0.1rem 0.4rem',
+                                borderRadius: '4px',
+                                background: '#E6F4EE',
+                                color: '#00684A',
+                                fontWeight: 700,
+                                border: '1px solid #CCE9DC',
+                              }}
+                              title="Core System Role: Protected against deletion"
+                            >
+                              Core System
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                          {role.description || '—'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge badge-${role.status}`}>{role.status}</span>
+                      </td>
+                      <td>
+                        <span className="code-tag">{role.staffCount || 0} members</span>
+                      </td>
+                      <td>
+                        <div className="perm-pill-container">
+                          {(role.permissions || []).slice(0, 5).map((perm) => (
+                            <span key={perm} className="perm-pill">
+                              {perm}
+                            </span>
+                          ))}
+                          {(role.permissions || []).length > 5 && (
+                            <span className="perm-pill" style={{ color: 'var(--primary)' }}>
+                              +{(role.permissions || []).length - 5} more
+                            </span>
+                          )}
+                          {(role.permissions || []).length === 0 && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                              No permissions assigned
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.35rem', alignItems: 'center' }}>
+                          {canWrite && (
+                            <button
+                              className="btn-icon"
+                              title="Edit Role"
+                              onClick={() => handleOpenEditModal(role)}
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                          )}
+                          {canDelete && !isProtected && (
+                            <button
+                              className="btn-icon btn-icon-danger"
+                              title="Delete Role"
+                              onClick={() => setDeleteCandidate(role)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                          {isProtected && (
+                            <span
+                              style={{
+                                fontSize: '0.7rem',
+                                color: 'var(--text-dim)',
+                                padding: '0 0.3rem',
+                              }}
+                              title="Protected Core Role"
+                            >
+                              Locked
+                            </span>
+                          )}
+                          {!canWrite && !canDelete && !isProtected && (
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', padding: '0 0.25rem' }}>
+                              Read Only
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

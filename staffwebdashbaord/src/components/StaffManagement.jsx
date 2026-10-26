@@ -14,10 +14,16 @@ import {
   XCircle,
   X,
   AlertTriangle,
+  Lock,
 } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export function StaffManagement({ showToast }) {
+  const { hasPermission, roleName, isSuperAdmin, isAuthenticated, currentStaff } = useAuth();
+  const canWrite = hasPermission('staff:write');
+  const canDelete = hasPermission('staff:delete');
+
   const [staffList, setStaffList] = useState([]);
   const [roles, setRoles] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -45,6 +51,11 @@ export function StaffManagement({ showToast }) {
   });
 
   const loadData = async () => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const [staffRes, rolesRes, deptRes] = await Promise.all([
@@ -69,9 +80,13 @@ export function StaffManagement({ showToast }) {
 
   useEffect(() => {
     loadData();
-  }, [departmentFilter, statusFilter, search]);
+  }, [departmentFilter, statusFilter, search, isAuthenticated]);
 
   const handleOpenCreateModal = () => {
+    if (!canWrite) {
+      showToast('Permission denied: requires staff:write permission', 'error');
+      return;
+    }
     setEditingStaff(null);
     setFormData({
       fullName: '',
@@ -85,6 +100,10 @@ export function StaffManagement({ showToast }) {
   };
 
   const handleOpenEditModal = (staff) => {
+    if (!canWrite) {
+      showToast('Permission denied: requires staff:write permission', 'error');
+      return;
+    }
     setEditingStaff(staff);
     setFormData({
       fullName: staff.userId?.fullName || '',
@@ -99,6 +118,10 @@ export function StaffManagement({ showToast }) {
 
   const handleSubmitStaff = async (e) => {
     e.preventDefault();
+    if (!canWrite) {
+      showToast('Action forbidden: requires staff:write permission', 'error');
+      return;
+    }
     if (!formData.roleId) {
       showToast('Please select a role', 'error');
       return;
@@ -139,6 +162,15 @@ export function StaffManagement({ showToast }) {
   };
 
   const handleQuickStatusChange = async (staffId, nextStatus) => {
+    if (!canWrite) {
+      showToast('Action forbidden: requires staff:write permission', 'error');
+      return;
+    }
+    // Prevent self-deactivation or suspension of current active profile
+    if (currentStaff?._id && staffId === currentStaff._id && nextStatus !== 'active') {
+      showToast('Security Alert: You cannot suspend or deactivate your own active account', 'error');
+      return;
+    }
     try {
       await api.updateStaffStatus(staffId, nextStatus);
       showToast(`Staff status updated to ${nextStatus}`, 'success');
@@ -150,6 +182,17 @@ export function StaffManagement({ showToast }) {
 
   const handleDeleteStaff = async () => {
     if (!deleteCandidate) return;
+    if (!canDelete) {
+      showToast('Action forbidden: requires staff:delete permission', 'error');
+      return;
+    }
+    // Prevent self-deactivation
+    if (currentStaff?._id && deleteCandidate._id === currentStaff._id) {
+      showToast('Security Alert: You cannot deactivate your own active staff profile', 'error');
+      setDeleteCandidate(null);
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.deleteStaff(deleteCandidate._id);
@@ -271,12 +314,47 @@ export function StaffManagement({ showToast }) {
               <option value="inactive">Inactive Only</option>
             </select>
 
-            <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-              <UserPlus size={16} />
-              <span>Add Staff Member</span>
-            </button>
+            {canWrite ? (
+              <button className="btn btn-primary" onClick={handleOpenCreateModal}>
+                <UserPlus size={16} />
+                <span>Add Staff Member</span>
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary"
+                disabled
+                style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--bg-tertiary)', color: 'var(--text-dim)', border: '1px solid var(--border-subtle)' }}
+                title="Requires staff:write permission"
+              >
+                <Lock size={14} />
+                <span>Add Staff (Restricted)</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Read-Only RBAC Notice Banner */}
+        {!canWrite && (
+          <div
+            style={{
+              margin: '0.5rem 1.5rem 1rem',
+              background: 'rgba(245, 158, 11, 0.08)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.65rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              color: '#d97706',
+              fontSize: '0.82rem',
+            }}
+          >
+            <Shield size={16} />
+            <span>
+              <strong>Read-Only Mode:</strong> Your role ({roleName || 'Staff'}) has viewing clearance. Staff registration, status changes, and modifications require the <code>staff:write</code> permission.
+            </span>
+          </div>
+        )}
 
         {/* Staff Table */}
         <div className="table-container">
@@ -310,9 +388,11 @@ export function StaffManagement({ showToast }) {
                       <div className="empty-desc">
                         No staff records match your query or the staff directory is empty.
                       </div>
-                      <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-                        <UserPlus size={16} /> Register First Staff
-                      </button>
+                      {canWrite && (
+                        <button className="btn btn-primary" onClick={handleOpenCreateModal}>
+                          <UserPlus size={16} /> Register First Staff
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -363,9 +443,16 @@ export function StaffManagement({ showToast }) {
                     <td>
                       <select
                         value={staff.status}
+                        disabled={!canWrite}
+                        title={!canWrite ? 'Requires staff:write permission' : 'Change staff status'}
                         onChange={(e) => handleQuickStatusChange(staff._id, e.target.value)}
                         className={`select-filter badge badge-${staff.status}`}
-                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                        style={{
+                          padding: '0.2rem 0.5rem',
+                          fontSize: '0.75rem',
+                          cursor: canWrite ? 'pointer' : 'not-allowed',
+                          opacity: canWrite ? 1 : 0.8,
+                        }}
                       >
                         <option value="active">Active</option>
                         <option value="suspended">Suspended</option>
@@ -373,21 +460,30 @@ export function StaffManagement({ showToast }) {
                       </select>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
-                        <button
-                          className="btn-icon"
-                          title="Edit Staff"
-                          onClick={() => handleOpenEditModal(staff)}
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="btn-icon btn-icon-danger"
-                          title="Deactivate Staff"
-                          onClick={() => setDeleteCandidate(staff)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                      <div style={{ display: 'inline-flex', gap: '0.35rem', alignItems: 'center' }}>
+                        {canWrite && (
+                          <button
+                            className="btn-icon"
+                            title="Edit Staff"
+                            onClick={() => handleOpenEditModal(staff)}
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            className="btn-icon btn-icon-danger"
+                            title="Deactivate Staff"
+                            onClick={() => setDeleteCandidate(staff)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                        {!canWrite && !canDelete && (
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', padding: '0 0.25rem' }}>
+                            Read Only
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
